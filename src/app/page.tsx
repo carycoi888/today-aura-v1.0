@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Settings2, Share2, Sparkles } from "lucide-react";
+import { CalendarDays, Eye, Settings2, Sparkles } from "lucide-react";
 import { auraButtonClass } from "@/components/app/aura-button";
 import { PageShell } from "@/components/app/page-shell";
 import { COLOR_LIBRARY, DEFAULT_PROFILE } from "@/lib/aura-options";
@@ -27,11 +27,14 @@ export default function Home() {
     currentResult?.colors.primary ?? getDisplayColor("灰蓝");
   const supportColor =
     getVisibleSupportColor(currentResult?.colors.secondary);
-  const accentColor =
+  const avoidColor =
     currentResult?.colors.avoid ?? getDisplayColor("炭褐");
+  const auraTitle = currentResult?.title ?? "清透专注";
   const heroSentence = formatHeroSentence(
     currentResult?.shortSentence ?? "用清醒感开始今天",
   );
+  const dateParts = formatDateParts(today);
+  const heroTextColor = getReadableTextColor(heroColor.hex);
   const displayProfileTags = (hasProfile ? profile.styleTags : ["清冷", "松弛", "知性"])
     .slice(0, 3)
     .join(" · ");
@@ -48,14 +51,14 @@ export default function Home() {
         <header className="flex items-start justify-between px-[8px]">
           <div>
             <p className="font-serif text-[20px] font-semibold leading-none tracking-normal text-[#292521]">
-              今日气场 <span className="ml-[6px] font-medium">Today Aura</span>
+              Today Aura
             </p>
             <p className="mt-[9px] text-[14px] font-medium leading-none tracking-normal text-[#7A6E62]">
-              出门前定好颜色和搭配
+              每日审美日历
             </p>
           </div>
           <Link
-            className="flex size-[43px] items-center justify-center rounded-full border border-[#D8CDBB] bg-[#FFFCF7]/68 text-[#3C3630] transition-colors hover:bg-[#F8F3EA]"
+            className="flex size-[43px] items-center justify-center rounded-full border border-[#D8CDBB] bg-[#FFFCF7]/72 text-[#3C3630] shadow-[0_8px_22px_rgba(60,54,48,0.05)] transition-colors hover:bg-[#F8F3EA]"
             href="/profile"
             aria-label="打开设置"
           >
@@ -63,82 +66,86 @@ export default function Home() {
           </Link>
         </header>
 
-        <section
-          className="relative mx-auto mt-[15px] h-[378px] w-[calc(100%-22px)] overflow-hidden rounded-[34px] px-[34px] py-[29px] text-[#FFFCF7]"
-          style={{ backgroundColor: heroColor.hex }}
-        >
+        <section className="relative mx-auto mt-[15px] min-h-[476px] w-[calc(100%-10px)] overflow-hidden rounded-[34px] border border-[#E2D8CB] bg-[#FFFCF7] px-[22px] py-[22px] shadow-[0_18px_45px_rgba(58,49,39,0.10)]">
           <Image
             alt=""
             aria-hidden="true"
-            className="absolute -bottom-[94px] -right-[112px] z-0 h-[292px] w-[230px] object-cover object-[82%_100%] opacity-[0.2] mix-blend-luminosity"
+            className="absolute -bottom-[86px] -right-[96px] z-0 h-[270px] w-[220px] object-cover object-[82%_100%] opacity-[0.13] mix-blend-luminosity"
             height={900}
             priority
             src="/images/today-aura-hero-still-life.png"
             width={480}
           />
           <div
-            className="absolute inset-0"
-            style={{
-              background:
-                `linear-gradient(180deg, ${heroColor.hex}E6 0%, ${heroColor.hex}D0 55%, ${heroColor.hex}B8 100%)`,
-            }}
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-[64px] top-[150px] size-[180px] rounded-full bg-[#DDE6EA]/45 blur-3xl"
           />
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(41,37,33,0.02)_0%,rgba(41,37,33,0.01)_45%,rgba(255,252,247,0.08)_100%)]" />
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-[-8px] right-[-18px] z-[1] h-[142px] w-[156px] opacity-35"
-            style={{
-              background:
-                "linear-gradient(135deg, rgba(255,252,247,0.18), rgba(255,252,247,0.04) 52%, rgba(255,252,247,0) 72%), radial-gradient(ellipse at 70% 80%, rgba(255,252,247,0.16), rgba(255,252,247,0) 62%)",
-              clipPath: "polygon(30% 0, 100% 8%, 100% 100%, 0 100%)",
-            }}
+            className="pointer-events-none absolute right-[-58px] top-[40px] size-[150px] rounded-full bg-[#E8D8BC]/42 blur-3xl"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 opacity-[0.28] [background-image:radial-gradient(#B99A63_0.5px,transparent_0.5px)] [background-size:12px_12px]"
           />
 
-          <div className="absolute left-[34px] top-[70px] z-10">
-            <p className="text-[16px] font-normal leading-none tracking-normal text-[#FFFCF7]/86">
-              今天的主色
-            </p>
-          </div>
+          <div className="relative z-10">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-2 rounded-full border border-[#E2D8CB] bg-[#FFFCF7]/78 px-3 py-2 text-[12px] font-medium text-[#7A6E62] shadow-[0_8px_20px_rgba(60,54,48,0.04)]">
+                <CalendarDays className="size-4 text-[#B99A63]" strokeWidth={1.8} />
+                {dateParts.weekday}
+              </div>
+              <div className="text-right">
+                <p className="font-serif text-[42px] font-semibold leading-none text-[#292521]">
+                  {dateParts.day}
+                </p>
+                <p className="mt-1 text-[12px] font-medium text-[#9B9288]">
+                  {dateParts.month}
+                </p>
+              </div>
+            </div>
 
-          <div className="absolute right-[36px] top-[62px] z-10 text-right text-[#FFFCF7]">
-            <p className="flex items-baseline justify-end gap-0.5 leading-none tracking-normal">
-              <span className="font-serif text-[30px] font-normal leading-none">
-                {today.getMonth() + 1}
-              </span>
-              <span className="text-[18px] font-normal leading-none tracking-normal">
-                月
-              </span>
-              <span className="font-serif text-[30px] font-normal leading-none">
-                {today.getDate()}
-              </span>
-              <span className="text-[18px] font-normal leading-none tracking-normal">
-                日
-              </span>
-            </p>
-            <p className="mt-[9px] text-[17px] font-normal leading-none">
-              {shortWeekdayFormatter.format(today)}
-            </p>
-          </div>
+            <div className="mt-[26px]">
+              <p className="text-[13px] font-medium text-[#B99A63]">今日气场日历</p>
+              <h1 className="mt-2 text-[33px] font-semibold leading-[1.12] text-[#292521]">
+                今天想以什么状态出现？
+              </h1>
+              <p className="mt-3 max-w-[17rem] text-[14px] leading-6 text-[#5E564F]">
+                出门前 1 分钟，定好今天的颜色、穿搭和整体气场。
+              </p>
+            </div>
 
-          <div className="absolute left-[31px] top-[122px] z-10 max-w-[14rem]">
-            <h1 className="font-serif text-[66px] font-semibold leading-[0.9] tracking-normal text-[#FFFCF7]">
-              {getDisplayColorName(heroColor.name)}
-            </h1>
-          </div>
+            <div
+              className="mt-[22px] overflow-hidden rounded-[28px] p-[18px] shadow-[inset_0_1px_0_rgba(255,255,255,0.24),0_18px_38px_rgba(57,48,38,0.14)]"
+              style={{ backgroundColor: heroColor.hex, color: heroTextColor }}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[12px] font-medium opacity-80">今日主色</p>
+                  <h2 className="mt-2 font-serif text-[48px] font-semibold leading-[0.95] tracking-normal">
+                    {getDisplayColorName(heroColor.name)}
+                  </h2>
+                </div>
+                <div className="rounded-full border border-current/25 bg-white/10 px-3 py-1 text-[12px] font-medium">
+                  {auraTitle}
+                </div>
+              </div>
+              <div className="mt-[58px] grid grid-cols-2 gap-2">
+                <MiniColorTag label="辅助色" color={supportColor} />
+                <MiniColorTag label="规避色" color={avoidColor} />
+              </div>
+            </div>
 
-          <p className="absolute left-[34px] top-[204px] z-10 text-[17px] font-normal leading-[1.45] tracking-normal text-[#FFFCF7]/92">
-            {heroSentence.length > 1 ? (
-              <>
-                <span className="block">{heroSentence[0]}</span>
-                <span className="block">{heroSentence[1]}</span>
-              </>
-            ) : (
-              heroSentence[0]
-            )}
-          </p>
+            <div className="mt-[16px] rounded-[24px] border border-[#E6DCCD] bg-[#FFFCF7]/72 p-4 shadow-[0_10px_26px_rgba(63,54,42,0.04)]">
+              <p className="text-[12px] font-medium text-[#B99A63]">今日短句</p>
+              <p className="mt-2 text-[17px] font-semibold leading-7 text-[#3C3630]">
+                {heroSentence.join("，")}
+              </p>
+            </div>
+          </div>
 
           <Link
-            className="absolute bottom-[18px] left-[34px] z-10 flex w-[209px] items-center gap-[10px] rounded-full border border-[#FFFCF7]/58 bg-transparent px-[8px] py-[8px] transition-colors hover:bg-[#FFFCF7]/10"
+            className="relative z-10 mt-[14px] flex w-full items-center gap-[10px] rounded-full border border-[#E2D8CB] bg-[#FFFCF7]/78 px-[9px] py-[9px] transition-colors hover:bg-[#F8F3EA]"
             href="/profile"
             aria-label="查看个人档案"
           >
@@ -152,50 +159,30 @@ export default function Home() {
               />
             </div>
             <div className="min-w-0">
-              <p className="truncate font-serif text-[18px] leading-none">
+              <p className="truncate font-serif text-[18px] leading-none text-[#292521]">
                 {hasProfile ? profile.nickname : "我的档案"}
               </p>
-              <p className="mt-[6px] truncate text-[12px] leading-none text-[#FFFCF7]/88">
+              <p className="mt-[6px] truncate text-[12px] leading-none text-[#7A6E62]">
                 {displayProfileTags}
               </p>
             </div>
           </Link>
         </section>
 
-        <section className="mt-[16px] overflow-hidden rounded-[27px] border border-[#E6DCCD] bg-[#FFFCF7]/88 p-[7px] shadow-[0_10px_28px_rgba(63,54,42,0.04)] backdrop-blur">
-          <div className="grid grid-cols-3 divide-x divide-[#EDE5DB]">
-            <ColorRoleCard
-              label="主色"
-              colorName={getDisplayColorName(heroColor.name)}
-              hex={heroColor.hex}
-            />
-            <ColorRoleCard
-              label="辅助"
-              colorName={supportColor.name}
-              hex={supportColor.hex}
-            />
-            <ColorRoleCard
-              label="稳定"
-              colorName={accentColor.name}
-              hex={accentColor.hex}
-            />
-          </div>
-        </section>
-
         <div className="space-y-[9px] pt-[15px]">
           <Link
-            className={auraButtonClass({ className: "h-[50px] w-full rounded-full text-[17px] font-semibold" })}
+            className={auraButtonClass({ className: "h-[52px] w-full rounded-full text-[17px] font-semibold" })}
             href="/today"
           >
             <Sparkles className="size-[22px]" strokeWidth={2.1} />
             生成今日气场
           </Link>
           <Link
-            className={auraButtonClass({ tone: "soft", className: "h-[50px] w-full rounded-full border-[#E2D8CB] bg-[#FFFCF7]/62 text-[17px] font-semibold text-[#594E42]" })}
+            className={auraButtonClass({ tone: "soft", className: "h-[52px] w-full rounded-full border-[#E2D8CB] bg-[#FFFCF7]/62 text-[17px] font-semibold text-[#594E42]" })}
             href={currentResult ? "/result" : hasProfile ? "/today" : "/profile"}
           >
-            <Share2 className="size-[21px]" strokeWidth={2.05} />
-            晒出今日气场
+            <Eye className="size-[21px]" strokeWidth={2.05} />
+            看看今日建议
           </Link>
         </div>
       </div>
@@ -203,24 +190,22 @@ export default function Home() {
   );
 }
 
-function ColorRoleCard({
+function MiniColorTag({
   label,
-  colorName,
-  hex,
+  color,
 }: {
   label: string;
-  colorName: string;
-  hex: string;
+  color: { name: string; hex: string };
 }) {
   return (
-    <div className="min-w-0 bg-[#FFFCF7]/32 px-[9px] py-[7px] text-center first:rounded-l-[22px] last:rounded-r-[22px]">
+    <div className="rounded-[17px] border border-current/20 bg-white/12 p-2">
       <div
-        className="h-[52px] rounded-[17px] shadow-[0_10px_22px_rgba(57,48,38,0.08)]"
-        style={{ backgroundColor: hex }}
+        className="h-[34px] rounded-[12px] ring-1 ring-black/5"
+        style={{ backgroundColor: color.hex }}
       />
-      <p className="mt-[8px] text-[14px] leading-tight text-[#7A6E62]">{label}</p>
-      <p className="mt-[2px] truncate text-[16px] font-semibold leading-tight text-[#292521]">
-        {colorName}
+      <p className="mt-2 text-[11px] leading-none opacity-70">{label}</p>
+      <p className="mt-1 truncate text-[14px] font-semibold leading-tight">
+        {getDisplayColorName(color.name)}
       </p>
     </div>
   );
@@ -251,10 +236,30 @@ function getVisibleSupportColor(color?: { name: string; hex: string }) {
 }
 
 function formatHeroSentence(sentence: string) {
-  return sentence
+  const parts = sentence
     .replace(/[。！？!?.]/g, "")
     .split(/[，,]/)
     .map((part) => part.trim())
     .filter(Boolean)
     .slice(0, 2);
+
+  return parts.length > 0 ? parts : ["用清醒感开始今天"];
+}
+
+function formatDateParts(date: Date) {
+  return {
+    month: `${date.getMonth() + 1}月`,
+    day: date.getDate().toString().padStart(2, "0"),
+    weekday: shortWeekdayFormatter.format(date),
+  };
+}
+
+function getReadableTextColor(hex: string) {
+  const color = hex.replace("#", "");
+  const red = Number.parseInt(color.slice(0, 2), 16);
+  const green = Number.parseInt(color.slice(2, 4), 16);
+  const blue = Number.parseInt(color.slice(4, 6), 16);
+  const luminance = (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
+
+  return luminance > 0.66 ? "#292521" : "#FFFCF7";
 }
