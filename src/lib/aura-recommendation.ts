@@ -63,7 +63,7 @@ function buildOutfitKeywords(
   input: TodayInput,
   profile: AuraProfile,
 ) {
-  const supportName = support?.name ?? "奶油白";
+  const supportName = support?.name ?? "燕麦色";
   const keywords = [
     `${primary.name}上装`,
     `${supportName}内搭`,
@@ -212,7 +212,8 @@ function pickSupportColors(
       if (formalScenes.includes(input.scene) && color.temperature === "中性") score += 2;
       if (socialScenes.includes(input.scene) && color.temperature === "暖") score += 2;
       if (seenAuras.includes(input.desiredAura) && color.saturation === "中") score += 1;
-      if (color.name === "奶油白") score += 4;
+      if (color.name === "燕麦色") score += 4;
+      if (color.name === "浅卡其") score += 2;
       return { color, score };
     })
     .sort((a, b) => b.score - a.score)

@@ -42,7 +42,6 @@ export type DesiredAura =
 export type CommonStyle = "清冷" | "松弛" | "知性" | "温柔" | "甜酷" | "元气";
 
 export type PreferredColor =
-  | "奶油白"
   | "灰蓝"
   | "炭褐"
   | "燕麦色"

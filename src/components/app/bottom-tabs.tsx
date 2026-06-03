@@ -14,6 +14,7 @@ const tabs = [
 
 export function BottomTabs() {
   const pathname = usePathname();
+  const normalizedPathname = normalizePathname(pathname);
 
   return (
     <nav className="fixed bottom-0 left-0 z-40 w-full max-w-[402px] border-t border-[#E8DED0] bg-[#FFFCF7] pb-[calc(env(safe-area-inset-bottom)+10px)] pt-[10px] sm:left-1/2 sm:-translate-x-1/2 sm:rounded-b-[34px]">
@@ -21,7 +22,7 @@ export function BottomTabs() {
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const FilledIcon = tab.filledIcon;
-          const active = pathname === tab.href;
+          const active = normalizedPathname === normalizePathname(tab.href);
 
           return (
             <Link
@@ -49,6 +50,11 @@ export function BottomTabs() {
       <div className="pointer-events-none absolute bottom-[5px] left-1/2 h-[5px] w-[142px] -translate-x-1/2 rounded-full bg-black" />
     </nav>
   );
+}
+
+function normalizePathname(pathname: string) {
+  if (pathname === "/") return "/";
+  return pathname.replace(/\/$/, "");
 }
 
 function FilledHome({ className }: { className?: string }) {

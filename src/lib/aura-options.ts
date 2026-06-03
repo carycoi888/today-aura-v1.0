@@ -68,7 +68,7 @@ export const AURA_OPTIONS: Option<DesiredAura>[] = [
 
 export const STYLE_TAG_OPTIONS: CommonStyle[] = ["清冷", "松弛", "知性", "温柔", "甜酷", "元气"];
 export const PROFILE_SCENE_OPTIONS: Scene[] = ["通勤", "上班", "休闲", "约会", "见朋友", "面试", "旅行", "聚会"];
-export const PREFERRED_COLOR_OPTIONS: PreferredColor[] = ["奶油白", "灰蓝", "炭褐", "燕麦色", "酒红", "浅卡其", "雾粉", "鼠尾草绿"];
+export const PREFERRED_COLOR_OPTIONS: PreferredColor[] = ["灰蓝", "炭褐", "燕麦色", "酒红", "浅卡其", "雾粉", "鼠尾草绿"];
 export const DISLIKED_COLOR_OPTIONS: DislikedColor[] = [
   "荧光粉",
   "高饱和橙",
@@ -106,16 +106,6 @@ export const EXTRA_NEED_FIELD = {
 };
 
 export const COLOR_LIBRARY: ColorMeta[] = [
-  {
-    name: "奶油白",
-    hex: "#F8F3EA",
-    temperature: "暖",
-    saturation: "低",
-    brightness: "浅",
-    moodTags: ["疲惫", "低落", "平静", "温柔", "松弛"],
-    sceneTags: ["通勤", "约会", "休闲", "面试", "旅行", "居家但想保持状态"],
-    usageTips: ["适合放在内搭、鞋包、围巾和脸周位置", "能提亮状态但不抢主色"],
-  },
   {
     name: "灰蓝",
     hex: "#8EA1A8",
@@ -212,7 +202,7 @@ export const DEFAULT_PROFILE: UserProfile = {
   nickname: "Cary",
   scenes: ["通勤", "休闲", "约会"],
   styleTags: ["清冷", "松弛", "知性"],
-  colors: ["奶油白", "灰蓝", "炭褐"],
+  colors: ["灰蓝", "燕麦色", "炭褐"],
   avoidColors: ["荧光粉", "高饱和橙"],
   skinTone: "不确定",
   outfitConstraints: ["低维护"],

@@ -94,5 +94,6 @@ export function saveResultToHistory(result: AuraResult) {
 }
 
 function normalizeColorName(name: string) {
+  if (name === "奶油白") return "燕麦色";
   return name === "炭黑" ? "炭褐" : name;
 }
