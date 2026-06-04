@@ -380,23 +380,25 @@ function HomeScreen({
           <Pencil className="size-4 text-[#B99A63]" />
         </div>
       </button>
-      <button className="w-full overflow-hidden rounded-[26px] border border-[#E2D8CB] bg-[#FFFCF7] text-left" onClick={onRecent} type="button">
+      <section className="w-full overflow-hidden rounded-[26px] border border-[#E2D8CB] bg-[#FFFCF7] text-left">
         <div className="p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm text-[#9B9288]">最近气场卡片</p>
-            <button className="text-xs text-[#B99A63]" onClick={(event) => { event.stopPropagation(); onHistory(); }} type="button">查看记录</button>
+            <button className="text-xs text-[#B99A63]" onClick={onHistory} type="button">查看记录</button>
           </div>
-          {result ? (
-            <div className="mt-3 rounded-[20px] p-4 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }}>
+          <button className="mt-3 w-full text-left" onClick={onRecent} type="button">
+            {result ? (
+            <div className="rounded-[20px] p-4 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }}>
               <p className="text-sm opacity-80">{result.date}</p>
               <p className="mt-3 text-2xl font-semibold">{result.title}</p>
               <p className="mt-2 text-sm opacity-90">{result.dailyQuote}</p>
             </div>
           ) : (
-            <p className="mt-4 text-sm leading-6 text-[#5E564F]">还没有保存记录，生成后可以在这里快速回看。</p>
+            <p className="text-sm leading-6 text-[#5E564F]">还没有保存记录，生成后可以在这里快速回看。</p>
           )}
+          </button>
         </div>
-      </button>
+      </section>
       <p className="text-center text-xs text-[#9B9288]">已保存 {history.length} 张今日气场卡片</p>
     </div>
   );
