@@ -589,35 +589,46 @@ function ShareModal({
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#292521]/28 px-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#292521]/28 px-6 backdrop-blur-md"
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       onClick={onCancel}
     >
       <motion.section
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative max-h-[82vh] w-full max-w-[360px] overflow-y-auto rounded-[28px] border border-[#E2D8CB] bg-[#FFFCF7] p-5 shadow-[0_26px_80px_rgba(41,37,33,0.24)]"
+        className="relative w-full max-w-[350px] rounded-[28px] border border-[#E2D8CB] bg-[#FFFCF7] p-5 shadow-[0_26px_80px_rgba(41,37,33,0.24)]"
         exit={{ opacity: 0, scale: 0.98, y: 10 }}
         initial={{ opacity: 0, scale: 0.98, y: 12 }}
         onClick={(event) => event.stopPropagation()}
         transition={{ duration: 0.2 }}
       >
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="font-serif text-[22px] font-semibold leading-none text-[#292521]">Today Aura</p>
-            <h2 className="mt-3 text-[20px] font-semibold">分享今日气场</h2>
-            <p className="mt-2 text-sm leading-6 text-[#7A6E62]">选择去向和卡片比例，保留今天的颜色与状态。</p>
+        <div className="text-center">
+          <p className="font-serif text-[24px] font-semibold leading-none text-[#292521]">Today Aura</p>
+          <h2 className="mt-3 text-[20px] font-semibold">分享今日气场</h2>
+          <p className="mt-2 text-sm text-[#7A6E62]">选择分享方式和卡片比例</p>
+        </div>
+
+        <div className="mt-5 rounded-[22px] border border-[#E2D8CB] bg-[#F8F3EA] p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-[#B99A63]">{ratio} 分享卡</p>
+              <p className="mt-1 truncate text-[18px] font-semibold text-[#292521]">{result.title}</p>
+              <p className="mt-1 text-xs text-[#9B9288]">{result.date}</p>
+            </div>
+            <div className="flex shrink-0 gap-1.5">
+              {[result.primaryColor, result.secondaryColor, result.accentColor].map((color) => (
+                <span
+                  className="size-6 rounded-full border border-[#E2D8CB]"
+                  key={`${ratio}-${color.name}`}
+                  style={{ backgroundColor: color.hex }}
+                />
+              ))}
+            </div>
           </div>
-          <button className="size-9 rounded-full border border-[#E2D8CB] text-sm text-[#7A6E62]" onClick={onCancel} type="button">
-            取消
-          </button>
         </div>
 
-        <div className="mt-5">
-          <ShareCard result={result} ratio={ratio} small />
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-2 rounded-full bg-[#EFE7DC] p-1">
+        <p className="mt-5 text-sm font-semibold text-[#5E564F]">卡片尺寸</p>
+        <div className="mt-2 grid grid-cols-2 gap-2 rounded-full bg-[#EFE7DC] p-1">
           {(["3:4", "9:16"] as const).map((item) => (
             <button
               className={`h-10 rounded-full text-sm font-semibold ${ratio === item ? "bg-[#FFFCF7] text-[#292521] shadow-sm" : "text-[#7A6E62]"}`}
@@ -630,10 +641,11 @@ function ShareModal({
           ))}
         </div>
 
+        <p className="mt-5 text-sm font-semibold text-[#5E564F]">分享方式</p>
         <div className="mt-4 grid grid-cols-3 gap-2">
           {targets.map((item) => (
             <button
-              className={`min-h-14 rounded-[16px] border px-2 text-sm font-semibold transition ${target === item ? "border-[#B99A63] bg-[#EFE7DC] text-[#292521]" : "border-[#E2D8CB] bg-[#FFFCF7] text-[#5E564F]"}`}
+              className={`min-h-14 rounded-[16px] border px-2 text-sm font-semibold transition ${target === item ? "border-[#B99A63] bg-[#292521] text-[#FFFCF7]" : "border-[#E2D8CB] bg-[#FFFCF7] text-[#5E564F]"}`}
               key={item}
               onClick={() => setTarget(item)}
               type="button"
@@ -643,7 +655,7 @@ function ShareModal({
           ))}
         </div>
 
-        <div className="mt-5 grid grid-cols-[0.8fr_1.2fr] gap-3">
+        <div className="mt-5 grid grid-cols-[0.85fr_1.15fr] gap-3">
           <SoftButton onClick={onCancel}>取消</SoftButton>
           <PrimaryButton onClick={() => onConfirm(target, ratio)}>确认分享</PrimaryButton>
         </div>
