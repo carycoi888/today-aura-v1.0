@@ -302,8 +302,8 @@ export function AuraPrototype() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="h-dvh overflow-hidden bg-[#EFE7DC] px-3 py-3 text-[#292521] sm:py-5">
-        <section className="mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden rounded-[32px] border border-[#E2D8CB] bg-[#F8F3EA] shadow-[0_22px_70px_rgba(60,54,48,0.16)]">
+      <main className="h-dvh overflow-hidden bg-[#F8F3EA] text-[#292521]">
+        <section className="mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden bg-[#F8F3EA]">
           <div className="relative min-h-0 flex-1 overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
