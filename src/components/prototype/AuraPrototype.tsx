@@ -2,20 +2,18 @@
 
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
 import {
-  BookOpen,
   CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
-  MessageCircle,
   RefreshCcw,
   Share2,
-  Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BottomNav, type PrototypeNavKey } from "@/components/prototype/BottomNav";
 import { HomeLuxuryScreen } from "@/components/prototype/HomeLuxuryScreen";
 import { ProfileLuxuryScreen } from "@/components/prototype/ProfileLuxuryScreen";
+import { SharePreviewModal } from "@/components/prototype/SharePreviewModal";
 import {
   defaultProfile,
   desiredAuraOptions,
@@ -225,7 +223,7 @@ export function AuraPrototype() {
             onRegenerate={confirmRegenerate}
             onSharePick={(message) => {
               setToast(message);
-              window.setTimeout(() => setToast(""), 1400);
+              window.setTimeout(() => setToast(""), 1500);
             }}
           />
         ) : (
@@ -480,7 +478,7 @@ function OverviewScreen({
           <div className="grid grid-cols-2 gap-3">
             <PrimaryButton onClick={() => setShareOpen(true)}>
               <Share2 className="size-4" />
-              分享
+              分享卡片
             </PrimaryButton>
             <SoftButton disabled={regeneratedUsed} onClick={onRegenerate}>
               <RefreshCcw className="size-4" />
@@ -537,11 +535,11 @@ function OverviewScreen({
 
       <AnimatePresence>
         {shareOpen ? (
-          <ShareModal
+          <SharePreviewModal
             onCancel={() => setShareOpen(false)}
-            onConfirm={(target, ratio) => {
+            onShare={(message) => {
               setShareOpen(false);
-              onSharePick(`已准备好${ratio}分享卡片 · ${target}`);
+              onSharePick(message);
             }}
             result={result}
           />
@@ -572,105 +570,6 @@ function ResultAdviceCard({ title, items }: { title: string; items: [string, str
           </p>
         ))}
       </div>
-    </motion.div>
-  );
-}
-
-function ShareModal({
-  result,
-  onCancel,
-  onConfirm,
-}: {
-  result: DailyAuraResult;
-  onCancel: () => void;
-  onConfirm: (target: string, ratio: "3:4" | "9:16") => void;
-}) {
-  const [target, setTarget] = useState("微信好友");
-  const [ratio, setRatio] = useState<"3:4" | "9:16">("3:4");
-  const targets = [
-    { icon: MessageCircle, label: "微信好友", tone: "bg-[#DCEBDD] text-[#3F7D4C]" },
-    { icon: Users, label: "朋友圈", tone: "bg-[#E8EEE9] text-[#567566]" },
-    { icon: BookOpen, label: "小红书", tone: "bg-[#F0E3DE] text-[#A76856]" },
-  ];
-
-  return (
-    <motion.div
-      animate={{ opacity: 1 }}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#292521]/28 px-6 backdrop-blur-md"
-      exit={{ opacity: 0 }}
-      initial={{ opacity: 0 }}
-      onClick={onCancel}
-    >
-      <motion.section
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        className="relative w-full max-w-[350px] rounded-[28px] border border-[#E2D8CB] bg-[#FFFCF7] p-5 shadow-[0_26px_80px_rgba(41,37,33,0.24)]"
-        exit={{ opacity: 0, scale: 0.98, y: 10 }}
-        initial={{ opacity: 0, scale: 0.98, y: 12 }}
-        onClick={(event) => event.stopPropagation()}
-        transition={{ duration: 0.2 }}
-      >
-        <div className="text-center">
-          <p className="font-serif text-[24px] font-semibold leading-none text-[#292521]">Today Aura</p>
-          <h2 className="mt-3 text-[20px] font-semibold">分享今日气场</h2>
-          <p className="mt-2 text-sm text-[#7A6E62]">选择分享方式和卡片比例</p>
-        </div>
-
-        <div className="mt-5 rounded-[22px] border border-[#E2D8CB] bg-[#F8F3EA] p-4">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold leading-5 text-[#B99A63]">{result.dailyQuote}</p>
-              <p className="mt-1 truncate text-[18px] font-semibold text-[#292521]">{result.title}</p>
-              <p className="mt-1 text-xs text-[#9B9288]">{result.date}</p>
-            </div>
-            <div className="flex shrink-0 gap-1.5">
-              {[result.primaryColor, result.secondaryColor, result.accentColor].map((color) => (
-                <span
-                  className="size-6 rounded-full border border-[#E2D8CB]"
-                  key={`${ratio}-${color.name}`}
-                  style={{ backgroundColor: color.hex }}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <p className="mt-5 text-sm font-semibold text-[#5E564F]">卡片尺寸</p>
-        <div className="mt-2 grid grid-cols-2 gap-2 rounded-full bg-[#EFE7DC] p-1">
-          {(["3:4", "9:16"] as const).map((item) => (
-            <button
-              className={`h-10 rounded-full text-sm font-semibold ${ratio === item ? "bg-[#FFFCF7] text-[#292521] shadow-sm" : "text-[#7A6E62]"}`}
-              key={item}
-              onClick={() => setRatio(item)}
-              type="button"
-            >
-              {item === "9:16" ? "9:16 长图" : "3:4 卡片"}
-            </button>
-          ))}
-        </div>
-
-        <p className="mt-5 text-sm font-semibold text-[#5E564F]">分享方式</p>
-        <div className="mt-3 grid grid-cols-3 gap-3">
-          {targets.map(({ icon: Icon, label, tone }) => (
-            <button
-              aria-label={label}
-              className={`flex flex-col items-center gap-2 rounded-[18px] border py-3 text-xs font-semibold transition ${target === label ? "border-[#B99A63] bg-[#EFE7DC] text-[#292521]" : "border-transparent bg-transparent text-[#7A6E62]"}`}
-              key={label}
-              onClick={() => setTarget(label)}
-              type="button"
-            >
-              <span className={`flex size-12 items-center justify-center rounded-full ${tone}`}>
-                <Icon className="size-5" />
-              </span>
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-5 grid grid-cols-[0.85fr_1.15fr] gap-3">
-          <SoftButton onClick={onCancel}>取消</SoftButton>
-          <PrimaryButton onClick={() => onConfirm(target, ratio)}>确认分享</PrimaryButton>
-        </div>
-      </motion.section>
     </motion.div>
   );
 }
@@ -924,7 +823,7 @@ function StepDots({ step }: { step: string }) {
 }
 
 function Toast({ message }: { message: string }) {
-  return <motion.div animate={{ opacity: 1, y: 0 }} className="absolute left-8 right-8 top-1/2 z-20 rounded-[20px] bg-[#FFFCF7] p-5 text-center shadow-[0_18px_48px_rgba(60,54,48,0.2)]" exit={{ opacity: 0, y: -8 }} initial={{ opacity: 0, y: 8 }}><Check className="mx-auto mb-2 size-6 text-[#B99A63]" /><p className="text-sm font-semibold">{message}</p></motion.div>;
+  return <motion.div animate={{ opacity: 1, y: 0 }} className="absolute left-8 right-8 top-[calc(env(safe-area-inset-top)+18px)] z-20 rounded-[20px] bg-[#FFFCF7] p-4 text-center shadow-[0_18px_48px_rgba(60,54,48,0.2)]" exit={{ opacity: 0, y: -8 }} initial={{ opacity: 0, y: 8 }}><Check className="mx-auto mb-2 size-6 text-[#B99A63]" /><p className="text-sm font-semibold">{message}</p></motion.div>;
 }
 
 function MiniColor({ label, name, color }: { label: string; name: string; color: string }) {
