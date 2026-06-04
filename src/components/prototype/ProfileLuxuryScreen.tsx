@@ -6,6 +6,7 @@ import Image from "next/image";
 import type { DailyAuraResult, UserProfile } from "@/lib/aura/types";
 import { AuraRecordRow } from "@/components/prototype/AuraRecordRow";
 import { ColorDots } from "@/components/prototype/ColorDots";
+import { readableMutedTextColor, readableTextColor } from "@/lib/aura/colorContrast";
 
 const preferredPalette = [
   { name: "深海蓝", hex: "#1F3648" },
@@ -37,6 +38,8 @@ export function ProfileLuxuryScreen({
   onOpenResult: (result?: DailyAuraResult) => void;
 }) {
   const tags = profile.commonStyles.slice(0, 3);
+  const heroTextColor = readableTextColor(result.primaryColor.hex || "#1F3648");
+  const heroMutedColor = readableMutedTextColor(result.primaryColor.hex || "#1F3648");
   const records = history.length
     ? history.slice(0, 2)
     : [
@@ -92,14 +95,14 @@ export function ProfileLuxuryScreen({
         transition={{ delay: 0.08, duration: 0.26 }}
       >
         <div
-          className="min-h-[142px] p-6 text-[#FFFCF7]"
-          style={{ backgroundColor: result.primaryColor.hex || "#1F3648" }}
+          className="min-h-[142px] p-6"
+          style={{ backgroundColor: result.primaryColor.hex || "#1F3648", color: heroTextColor }}
         >
-          <p className="text-[14px] font-semibold opacity-82">我的目标气场</p>
+          <p className="text-[14px] font-semibold" style={{ color: heroMutedColor }}>我的目标气场</p>
           <h2 className="mt-4 text-[28px] font-semibold leading-tight tracking-normal">
             清澈专注 · 优雅从容
           </h2>
-          <p className="mt-4 text-[16px] font-semibold leading-7 text-[#F4EEE7]/88">
+          <p className="mt-4 text-[16px] font-semibold leading-7" style={{ color: heroMutedColor }}>
             在细节中，保持清醒与温度。
           </p>
         </div>

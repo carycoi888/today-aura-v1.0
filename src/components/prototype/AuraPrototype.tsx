@@ -4,6 +4,7 @@ import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/
 import {
   CalendarDays,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   RefreshCcw,
@@ -14,6 +15,7 @@ import { BottomNav, type PrototypeNavKey } from "@/components/prototype/BottomNa
 import { HomeLuxuryScreen } from "@/components/prototype/HomeLuxuryScreen";
 import { ProfileLuxuryScreen } from "@/components/prototype/ProfileLuxuryScreen";
 import { SharePreviewModal } from "@/components/prototype/SharePreviewModal";
+import { readableMutedTextColor, readableSoftLayer, readableTextColor } from "@/lib/aura/colorContrast";
 import {
   defaultProfile,
   desiredAuraOptions,
@@ -113,15 +115,19 @@ export function AuraPrototype() {
 
   function startGenerate() {
     const next = generateDailyAura(input, profile, false);
+    saveResult(next);
     setResult(next);
+    setHistory(readResults());
     setRegeneratedUsed(false);
     setScreen("generating");
   }
 
   function openDefaultResult() {
     const next = generateDailyAura(defaultInput, profile, false);
+    saveResult(next);
     setInput(defaultInput);
     setResult(next);
+    setHistory(readResults());
     setRegeneratedUsed(false);
     setScreen("overview");
   }
@@ -137,7 +143,9 @@ export function AuraPrototype() {
   function confirmRegenerate() {
     if (!result || regeneratedUsed) return;
     const next = generateDailyAura(result.input, profile, true);
+    saveResult(next);
     setResult(next);
+    setHistory(readResults());
     setRegeneratedUsed(true);
     setScreen("generating");
   }
@@ -437,6 +445,9 @@ function OverviewScreen({
 }) {
   const [activeAdvice, setActiveAdvice] = useState<"outfit" | "makeup">("outfit");
   const [shareOpen, setShareOpen] = useState(false);
+  const heroTextColor = readableTextColor(result.primaryColor.hex);
+  const heroMutedColor = readableMutedTextColor(result.primaryColor.hex);
+  const heroLayer = readableSoftLayer(result.primaryColor.hex);
 
   return (
     <div className="space-y-5">
@@ -446,26 +457,34 @@ function OverviewScreen({
         initial="hidden"
         variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
       >
-        <motion.div className="relative min-h-[286px] overflow-hidden p-5 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }} variants={riseVariant}>
+        <motion.div
+          className="relative min-h-[286px] overflow-hidden p-5"
+          style={{ backgroundColor: result.primaryColor.hex, color: heroTextColor }}
+          variants={riseVariant}
+        >
           <div
             aria-hidden="true"
-            className="absolute bottom-[-64px] right-[-46px] h-44 w-44 rounded-full bg-white/20 blur-2xl"
+            className="absolute bottom-[-64px] right-[-46px] h-44 w-44 rounded-full blur-2xl"
+            style={{ backgroundColor: heroLayer.background }}
           />
           <div className="relative flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm opacity-85">今日气场</p>
+              <p className="text-sm" style={{ color: heroMutedColor }}>今日气场</p>
               <h1 className="mt-2 text-[42px] font-semibold leading-none tracking-normal">{result.title}</h1>
             </div>
-            <div className="rounded-[18px] border border-white/28 bg-white/12 px-3 py-2 text-right">
-              <CalendarDays className="ml-auto size-4 opacity-85" />
-              <p className="mt-2 text-xs leading-4 opacity-85">{result.date}</p>
+            <div
+              className="rounded-[18px] border px-3 py-2 text-right"
+              style={{ backgroundColor: heroLayer.background, borderColor: heroLayer.border }}
+            >
+              <CalendarDays className="ml-auto size-4" style={{ color: heroMutedColor }} />
+              <p className="mt-2 text-xs leading-4" style={{ color: heroMutedColor }}>{result.date}</p>
             </div>
           </div>
 
           <div className="relative mt-10">
-            <p className="text-xs opacity-80">Main Color</p>
+            <p className="text-xs" style={{ color: heroMutedColor }}>Main Color</p>
             <h2 className="mt-1 text-[58px] font-semibold leading-none">{result.primaryColor.name}</h2>
-            <p className="mt-4 max-w-[16rem] text-sm leading-6 opacity-92">{result.dailyQuote}</p>
+            <p className="mt-4 max-w-[16rem] text-sm leading-6" style={{ color: heroMutedColor }}>{result.dailyQuote}</p>
           </div>
         </motion.div>
 
@@ -658,30 +677,141 @@ function SharePreviewScreen({
 }
 
 function HistoryScreen({ history, onOpen, onGenerate }: { history: DailyAuraResult[]; onOpen: (result: DailyAuraResult) => void; onGenerate: () => void }) {
+  const groups = groupHistoryByMonthAndDay(history);
+  const [collapsedMonths, setCollapsedMonths] = useState<string[]>([]);
+
+  function toggleMonth(key: string) {
+    setCollapsedMonths((current) => (
+      current.includes(key) ? current.filter((item) => item !== key) : [...current, key]
+    ));
+  }
+
   return (
-    <div className="space-y-4">
-      <h1 className="text-[26px] font-semibold">记录列表</h1>
-      <p className="text-sm text-[#9B9288]">6 月 2026</p>
-      {history.length ? history.map((item) => (
-        <button className="w-full rounded-[22px] border border-[#E2D8CB] bg-[#FFFCF7] p-4 text-left" key={item.id} onClick={() => onOpen(item)} type="button">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-semibold">{item.date} · {item.title}</p>
-              <p className="mt-2 text-sm text-[#7A6E62]">{item.input.scene} · {item.input.mood} · {item.input.desiredAura}</p>
-            </div>
-            <div className="flex gap-1">
-              {[item.primaryColor, item.secondaryColor, item.accentColor].map((color) => <span className="size-4 rounded-full border border-[#E2D8CB]" key={color.name} style={{ backgroundColor: color.hex }} />)}
-            </div>
-          </div>
-        </button>
-      )) : (
+    <div className="space-y-5">
+      <h1 className="text-[30px] font-semibold">记录列表</h1>
+      {groups.length ? groups.map((month) => {
+        const collapsed = collapsedMonths.includes(month.key);
+        return (
+          <section className="space-y-3" key={month.key}>
+            <button
+              className="flex w-full items-center justify-between text-left"
+              onClick={() => toggleMonth(month.key)}
+              type="button"
+            >
+              <span className="text-[18px] font-semibold text-[#9B9288]">{month.label}</span>
+              <span className="flex items-center gap-2 text-sm font-semibold text-[#9B9288]">
+                {month.count} 条
+                {collapsed ? <ChevronRight className="size-4" /> : <ChevronDown className="size-4" />}
+              </span>
+            </button>
+            <AnimatePresence initial={false}>
+              {!collapsed ? (
+                <motion.div
+                  animate={{ height: "auto", opacity: 1 }}
+                  className="space-y-4 overflow-hidden"
+                  exit={{ height: 0, opacity: 0 }}
+                  initial={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.22, ease: "easeOut" }}
+                >
+                  {month.days.map((day) => (
+                    <section className="space-y-2" key={day.key}>
+                      <p className="px-1 text-sm font-semibold text-[#B99A63]">{day.label}</p>
+                      <div className="overflow-hidden rounded-[22px] border border-[#E2D8CB] bg-[#FFFCF7] shadow-[0_8px_24px_rgba(60,54,48,0.05)]">
+                        {day.items.map((item, index) => (
+                          <button
+                            className={`flex w-full items-center justify-between gap-3 p-4 text-left ${index > 0 ? "border-t border-[#E2D8CB]" : ""}`}
+                            key={item.id}
+                            onClick={() => onOpen(item)}
+                            type="button"
+                          >
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-[17px] font-semibold text-[#292521]">
+                                {formatHistoryDate(item)} · {item.title}
+                              </span>
+                              <span className="mt-2 block truncate text-sm text-[#7A6E62]">
+                                {item.input.scene} · {item.input.mood} · {item.input.desiredAura}
+                              </span>
+                            </span>
+                            <span className="flex shrink-0 gap-1">
+                              {[item.primaryColor, item.secondaryColor, item.accentColor].map((color) => (
+                                <span
+                                  className="size-4 rounded-full border border-[#E2D8CB]"
+                                  key={`${item.id}-${color.role}`}
+                                  style={{ backgroundColor: color.hex }}
+                                />
+                              ))}
+                            </span>
+                            <ChevronRight className="size-4 shrink-0 text-[#B8AEA3]" />
+                          </button>
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+          </section>
+        );
+      }) : (
         <section className="rounded-[24px] border border-[#E2D8CB] bg-[#FFFCF7] p-5">
-          <p className="text-sm leading-6 text-[#5E564F]">还没有保存记录。生成并保存今日气场后，会在这里按月份展示。</p>
+          <p className="text-sm leading-6 text-[#5E564F]">还没有记录。生成今日气场后，会在这里按年月日展示。</p>
           <PrimaryButton className="mt-5" onClick={onGenerate}>生成今日气场</PrimaryButton>
         </section>
       )}
     </div>
   );
+}
+
+function groupHistoryByMonthAndDay(history: DailyAuraResult[]) {
+  const monthMap = new Map<string, { key: string; label: string; count: number; days: Map<string, { key: string; label: string; items: DailyAuraResult[] }> }>();
+
+  history
+    .slice()
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .forEach((item) => {
+      const date = getResultDate(item);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      const dayKey = `${monthKey}-${String(date.getDate()).padStart(2, "0")}`;
+      if (!monthMap.has(monthKey)) {
+        monthMap.set(monthKey, {
+          key: monthKey,
+          label: `${date.getFullYear()} 年 ${date.getMonth() + 1} 月`,
+          count: 0,
+          days: new Map(),
+        });
+      }
+      const month = monthMap.get(monthKey);
+      if (!month) return;
+      if (!month.days.has(dayKey)) {
+        month.days.set(dayKey, {
+          key: dayKey,
+          label: `${date.getMonth() + 1} 月 ${date.getDate()} 日`,
+          items: [],
+        });
+      }
+      const day = month.days.get(dayKey);
+      if (!day) return;
+      day.items.push(item);
+      month.count += 1;
+    });
+
+  return Array.from(monthMap.values()).map((month) => ({
+    key: month.key,
+    label: month.label,
+    count: month.count,
+    days: Array.from(month.days.values()),
+  }));
+}
+
+function getResultDate(result: DailyAuraResult) {
+  const date = new Date(result.createdAt);
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+}
+
+function formatHistoryDate(result: DailyAuraResult) {
+  const date = getResultDate(result);
+  const weekday = new Intl.DateTimeFormat("zh-CN", { weekday: "short" }).format(date);
+  return `${date.getMonth() + 1}月${date.getDate()}日${weekday}`;
 }
 
 function RegenerateConfirm({ result, disabled, onCancel, onConfirm }: { result: DailyAuraResult; disabled: boolean; onCancel: () => void; onConfirm: () => void }) {

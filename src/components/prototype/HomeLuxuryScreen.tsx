@@ -88,8 +88,7 @@ export function HomeLuxuryScreen({
 
       <section className="mt-11">
         <h2
-          className="text-[42px] font-semibold leading-[1.12] tracking-normal text-[#292521]"
-          style={{ fontFamily: '"Songti SC", "Noto Serif CJK SC", STSong, SimSun, serif' }}
+          className="aura-home-question-title text-[42px] font-semibold leading-[1.12] tracking-normal text-[#292521]"
         >
           今天想以
           <br />

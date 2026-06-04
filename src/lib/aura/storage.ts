@@ -37,7 +37,7 @@ export function readResults() {
 
 export function saveResult(result: DailyAuraResult) {
   const existing = readResults();
-  const next = [result, ...existing.filter((item) => item.id !== result.id)].slice(0, 30);
+  const next = [result, ...existing.filter((item) => item.id !== result.id)];
   writeJson(RESULTS_KEY, next);
 }
 

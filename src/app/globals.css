@@ -76,4 +76,16 @@
   .animate-aura-swatch-open {
     animation: aura-swatch-open 320ms ease-out both;
   }
+
+  .aura-home-question-title {
+    font-family:
+      "Songti SC",
+      "STSong",
+      "Noto Serif CJK SC",
+      "Source Han Serif SC",
+      "SimSun",
+      serif;
+    font-feature-settings: "palt" 1;
+    font-synthesis: none;
+  }
 }

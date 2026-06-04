@@ -46,7 +46,7 @@ export function generateDailyAura(
   const createdAt = new Date().toISOString();
 
   return {
-    id: `${createdAt.slice(0, 10)}-${hashInput(input)}-${isRegenerated ? "r1" : "r0"}`,
+    id: `${createdAt}-${hashInput(input)}-${isRegenerated ? "r1" : "r0"}`,
     date,
     input,
     title,
