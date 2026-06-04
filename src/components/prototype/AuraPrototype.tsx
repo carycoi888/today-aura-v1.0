@@ -288,10 +288,6 @@ export function AuraPrototype() {
         return (
           <HomeLuxuryScreen
             onGenerate={() => setScreen("scene")}
-            onCalendarHint={() => {
-              setToast("今日气场按当天状态生成");
-              window.setTimeout(() => setToast(""), 1500);
-            }}
             onOpenProfile={() => setScreen("mine")}
             onOpenRecent={() => {
               if (result) setScreen("overview");
