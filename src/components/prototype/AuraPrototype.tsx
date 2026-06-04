@@ -2,12 +2,15 @@
 
 import { AnimatePresence, MotionConfig, motion, useReducedMotion } from "motion/react";
 import {
+  BookOpen,
   CalendarDays,
   Check,
   ChevronLeft,
   ChevronRight,
+  MessageCircle,
   RefreshCcw,
   Share2,
+  Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { BottomNav, type PrototypeNavKey } from "@/components/prototype/BottomNav";
@@ -582,9 +585,13 @@ function ShareModal({
   onCancel: () => void;
   onConfirm: (target: string, ratio: "3:4" | "9:16") => void;
 }) {
-  const [target, setTarget] = useState("分享给好友");
+  const [target, setTarget] = useState("微信好友");
   const [ratio, setRatio] = useState<"3:4" | "9:16">("3:4");
-  const targets = ["分享给好友", "朋友圈", "小红书"];
+  const targets = [
+    { icon: MessageCircle, label: "微信好友", tone: "bg-[#DCEBDD] text-[#3F7D4C]" },
+    { icon: Users, label: "朋友圈", tone: "bg-[#E8EEE9] text-[#567566]" },
+    { icon: BookOpen, label: "小红书", tone: "bg-[#F0E3DE] text-[#A76856]" },
+  ];
 
   return (
     <motion.div
@@ -611,7 +618,7 @@ function ShareModal({
         <div className="mt-5 rounded-[22px] border border-[#E2D8CB] bg-[#F8F3EA] p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-[#B99A63]">{ratio} 分享卡</p>
+              <p className="text-xs font-semibold leading-5 text-[#B99A63]">{result.dailyQuote}</p>
               <p className="mt-1 truncate text-[18px] font-semibold text-[#292521]">{result.title}</p>
               <p className="mt-1 text-xs text-[#9B9288]">{result.date}</p>
             </div>
@@ -642,15 +649,19 @@ function ShareModal({
         </div>
 
         <p className="mt-5 text-sm font-semibold text-[#5E564F]">分享方式</p>
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {targets.map((item) => (
+        <div className="mt-3 grid grid-cols-3 gap-3">
+          {targets.map(({ icon: Icon, label, tone }) => (
             <button
-              className={`min-h-14 rounded-[16px] border px-2 text-sm font-semibold transition ${target === item ? "border-[#B99A63] bg-[#292521] text-[#FFFCF7]" : "border-[#E2D8CB] bg-[#FFFCF7] text-[#5E564F]"}`}
-              key={item}
-              onClick={() => setTarget(item)}
+              aria-label={label}
+              className={`flex flex-col items-center gap-2 rounded-[18px] border py-3 text-xs font-semibold transition ${target === label ? "border-[#B99A63] bg-[#EFE7DC] text-[#292521]" : "border-transparent bg-transparent text-[#7A6E62]"}`}
+              key={label}
+              onClick={() => setTarget(label)}
               type="button"
             >
-              {item}
+              <span className={`flex size-12 items-center justify-center rounded-full ${tone}`}>
+                <Icon className="size-5" />
+              </span>
+              <span>{label}</span>
             </button>
           ))}
         </div>
