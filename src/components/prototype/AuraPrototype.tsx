@@ -5,15 +5,14 @@ import {
   CalendarDays,
   Check,
   ChevronLeft,
-  Heart,
-  Home,
   ListChecks,
-  Pencil,
   RefreshCcw,
   Share2,
-  User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { BottomNav, type PrototypeNavKey } from "@/components/prototype/BottomNav";
+import { HomeLuxuryScreen } from "@/components/prototype/HomeLuxuryScreen";
+import { ProfileLuxuryScreen } from "@/components/prototype/ProfileLuxuryScreen";
 import {
   defaultProfile,
   desiredAuraOptions,
@@ -55,6 +54,7 @@ type Screen =
   | "regenerate"
   | "regenerated"
   | "shareOptions"
+  | "mine"
   | "profile"
   | "styleEdit";
 
@@ -247,6 +247,20 @@ export function AuraPrototype() {
         return result ? <RegenerateConfirm result={result} disabled={regeneratedUsed || result.isRegenerated} onCancel={() => setScreen("overview")} onConfirm={confirmRegenerate} /> : <EmptyResult onGenerate={() => setScreen("scene")} />;
       case "shareOptions":
         return result ? <ShareOptionsScreen result={result} onCancel={() => setScreen("share34")} onPick={(message) => { setToast(message); window.setTimeout(() => setToast(""), 1400); }} /> : <EmptyResult onGenerate={() => setScreen("scene")} />;
+      case "mine":
+        return (
+          <ProfileLuxuryScreen
+            history={history}
+            onEdit={() => setScreen("profile")}
+            onOpenResult={(item) => {
+              if (item) setResult(item);
+              else setResult(previewResult);
+              setScreen("overview");
+            }}
+            profile={profile}
+            result={previewResult}
+          />
+        );
       case "profile":
         return <ProfileEntryScreen profile={profile} onDone={() => setScreen("home")} onEdit={() => setScreen("styleEdit")} onProfile={setProfile} onSave={() => saveProfileAndReturn(profile)} />;
       case "styleEdit":
@@ -274,18 +288,16 @@ export function AuraPrototype() {
         );
       default:
         return (
-          <HomeScreen
-            history={history}
-            profile={profile}
-            result={previewResult}
-            hasRealResult={Boolean(result)}
-            onEditProfile={() => setScreen("profile")}
+          <HomeLuxuryScreen
             onGenerate={() => setScreen("scene")}
-            onHistory={() => setScreen("history")}
-            onRecent={() => {
+            onOpenProfile={() => setScreen("mine")}
+            onOpenRecent={() => {
               if (result) setScreen("overview");
               else openDefaultResult();
             }}
+            profile={profile}
+            recent={history[0]}
+            result={previewResult}
           />
         );
     }
@@ -312,129 +324,10 @@ export function AuraPrototype() {
               {toast ? <Toast message={toast} /> : null}
             </AnimatePresence>
           </div>
-          <BottomNav active={screen} onGo={setScreen} />
+          <BottomNav active={screen} onGo={(key: PrototypeNavKey) => setScreen(key)} />
         </section>
       </main>
     </MotionConfig>
-  );
-}
-
-function HomeScreen({
-  profile,
-  result,
-  hasRealResult,
-  history,
-  onGenerate,
-  onEditProfile,
-  onRecent,
-  onHistory,
-}: {
-  profile: UserProfile;
-  result: DailyAuraResult;
-  hasRealResult: boolean;
-  history: DailyAuraResult[];
-  onGenerate: () => void;
-  onEditProfile: () => void;
-  onRecent: () => void;
-  onHistory: () => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <header className="flex items-start justify-between px-1">
-        <div>
-          <p className="font-serif text-[19px] font-semibold tracking-normal">Today Aura</p>
-          <p className="mt-2 text-sm text-[#7A6E62]">今日气场 · {formatToday()}</p>
-        </div>
-        <button className="flex size-10 items-center justify-center rounded-full border border-[#E2D8CB] bg-[#FFFCF7]" onClick={onEditProfile} type="button">
-          <Pencil className="size-4 text-[#3C3630]" />
-        </button>
-      </header>
-
-      <motion.section
-        whileHover={{ y: -2 }}
-        className="relative overflow-hidden rounded-[30px] border border-[#D8CBBE] bg-[#FFFCF7] p-5 shadow-[0_18px_48px_rgba(60,54,48,0.11)]"
-      >
-        <div
-          aria-hidden="true"
-          className="absolute right-[-36px] top-[-42px] h-44 w-44 rounded-full opacity-30 blur-3xl"
-          style={{ backgroundColor: result.primaryColor.hex }}
-        />
-        <div className="relative">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-[#B99A63]">今日默认气场</p>
-              <h1 className="mt-2 text-[31px] font-semibold leading-[1.08] tracking-normal">
-                今天想以什么状态出现？
-              </h1>
-              <p className="mt-3 text-sm leading-6 text-[#5E564F]">
-                出门前 1 分钟，定好今天的颜色、穿搭和整体气场。
-              </p>
-            </div>
-            <div className="shrink-0 rounded-[18px] border border-[#E2D8CB] bg-[#F8F3EA] px-3 py-2 text-center">
-              <p className="font-serif text-[26px] font-semibold leading-none">{new Date().getDate()}</p>
-              <p className="mt-1 text-[11px] text-[#9B9288]">{new Date().getMonth() + 1}月</p>
-            </div>
-          </div>
-
-          <div className="mt-5 grid grid-cols-[1.15fr_0.85fr] gap-3">
-            <div className="rounded-[24px] p-4 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }}>
-              <p className="text-xs opacity-80">推荐主色</p>
-              <p className="mt-8 text-[34px] font-semibold leading-none">{result.primaryColor.name}</p>
-              <p className="mt-3 text-xs leading-5 opacity-90">{result.title}</p>
-            </div>
-            <div className="grid gap-3">
-              <ColorMemo label="辅助" name={result.secondaryColor.name} color={result.secondaryColor.hex} />
-              <ColorMemo label="规避" name={result.avoidColor.name} color={result.avoidColor.hex} />
-            </div>
-          </div>
-
-          <p className="mt-4 rounded-[18px] bg-[#F8F3EA] px-4 py-3 text-sm font-semibold leading-6 text-[#3C3630]">
-            {result.dailyQuote}
-          </p>
-
-          <PrimaryButton className="mt-5" onClick={onGenerate}>生成今日气场</PrimaryButton>
-        </div>
-      </motion.section>
-
-      <button className="w-full rounded-[24px] border border-[#E2D8CB] bg-[#FFFCF7] p-4 text-left" onClick={onEditProfile} type="button">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-[#9B9288]">我的档案摘要</p>
-            <p className="mt-2 font-semibold">{profile.nickname} · {profile.commonStyles.slice(0, 3).join(" · ")}</p>
-            <div className="mt-3 flex gap-2">
-              {profile.commonColors.slice(0, 3).map((item) => <span className="rounded-full border border-[#E2D8CB] px-3 py-1 text-xs text-[#5E564F]" key={item}>{item}</span>)}
-            </div>
-          </div>
-          <Pencil className="size-4 text-[#B99A63]" />
-        </div>
-      </button>
-      <section className="w-full overflow-hidden rounded-[26px] border border-[#E2D8CB] bg-[#FFFCF7] text-left">
-        <div className="p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-[#9B9288]">{hasRealResult ? "最近气场卡片" : "默认气场预览"}</p>
-            <button className="text-xs text-[#B99A63]" onClick={onHistory} type="button">查看记录</button>
-          </div>
-          <button className="mt-3 w-full text-left" onClick={onRecent} type="button">
-            <div className="rounded-[20px] p-4 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }}>
-              <p className="text-sm opacity-80">{result.date}</p>
-              <p className="mt-3 text-2xl font-semibold">{result.title}</p>
-              <p className="mt-2 text-sm opacity-90">{result.dailyQuote}</p>
-            </div>
-          </button>
-        </div>
-      </section>
-      <p className="text-center text-xs text-[#9B9288]">已保存 {history.length} 张今日气场卡片</p>
-    </div>
-  );
-}
-
-function ColorMemo({ label, name, color }: { label: string; name: string; color: string }) {
-  return (
-    <div className="rounded-[20px] border border-[#E2D8CB] bg-[#F8F3EA] p-3">
-      <div className="h-10 rounded-[12px]" style={{ backgroundColor: color }} />
-      <p className="mt-2 text-[11px] text-[#9B9288]">{label}</p>
-      <p className="text-sm font-semibold">{name}</p>
-    </div>
   );
 }
 
@@ -590,7 +483,7 @@ function OverviewScreen({
         <motion.div className="grid grid-cols-3 gap-3 p-4" variants={riseVariant}>
           <MiniColor color={result.primaryColor.hex} label="主色" name={result.primaryColor.name} />
           <MiniColor color={result.secondaryColor.hex} label="辅助" name={result.secondaryColor.name} />
-          <MiniColor color={result.avoidColor.hex} label="规避" name={result.avoidColor.name} />
+          <MiniColor color={result.accentColor.hex} label="点缀" name={result.accentColor.name} />
         </motion.div>
       </motion.section>
 
@@ -649,7 +542,7 @@ function DetailScreen({
         <AdvicePanel title="为什么是这个主色">
           <p>{result.colorExplanation}</p>
           <InfoLine label="如何使用主色" value={result.primaryColor.usage} />
-          <InfoLine label="规避色说明" value={result.avoidColor.reason} />
+          <InfoLine label="点缀色说明" value={result.accentColor.reason} />
         </AdvicePanel>
       ) : null}
       {tab === "outfit" ? (
@@ -722,7 +615,7 @@ function HistoryScreen({ history, onOpen, onGenerate }: { history: DailyAuraResu
               <p className="mt-2 text-sm text-[#7A6E62]">{item.input.scene} · {item.input.mood} · {item.input.desiredAura}</p>
             </div>
             <div className="flex gap-1">
-              {[item.primaryColor, item.secondaryColor, item.avoidColor].map((color) => <span className="size-4 rounded-full border border-[#E2D8CB]" key={color.name} style={{ backgroundColor: color.hex }} />)}
+              {[item.primaryColor, item.secondaryColor, item.accentColor].map((color) => <span className="size-4 rounded-full border border-[#E2D8CB]" key={color.name} style={{ backgroundColor: color.hex }} />)}
             </div>
           </div>
         </button>
@@ -815,7 +708,7 @@ function ShareCard({ result, ratio, small = false }: { result: DailyAuraResult; 
       </div>
       <h2 className="mt-8 text-center text-[34px] font-semibold tracking-normal">{result.title}</h2>
       <div className={`mt-7 grid ${ratio === "9:16" ? "grid-cols-1 gap-3" : "grid-cols-3 gap-3"}`}>
-        {[result.primaryColor, result.secondaryColor, result.avoidColor].map((color) => (
+        {[result.primaryColor, result.secondaryColor, result.accentColor].map((color) => (
           <div key={color.name}>
             <div className="h-16 rounded-[14px]" style={{ backgroundColor: color.hex }} />
             <p className="mt-2 text-center text-xs font-semibold">{color.name}</p>
@@ -874,20 +767,6 @@ function StepDots({ step }: { step: string }) {
   );
 }
 
-function BottomNav({ active, onGo }: { active: Screen; onGo: (screen: Screen) => void }) {
-  const items = [
-    ["home", "首页", Home],
-    ["profile", "档案", User],
-    ["history", "记录", ListChecks],
-    ["shareOptions", "我的", Heart],
-  ] as const;
-  return (
-    <nav className="sticky bottom-0 z-10 grid h-[calc(74px+env(safe-area-inset-bottom))] shrink-0 grid-cols-4 border-t border-[#E2D8CB] bg-[#FFFCF7]/96 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_28px_rgba(60,54,48,0.06)]">
-      {items.map(([key, label, Icon]) => <button className={`flex flex-col items-center justify-center gap-1 text-xs ${active === key ? "text-[#B99A63]" : "text-[#5E564F]"}`} key={key} onClick={() => onGo(key)} type="button"><Icon className="size-4" />{label}</button>)}
-    </nav>
-  );
-}
-
 function Toast({ message }: { message: string }) {
   return <motion.div animate={{ opacity: 1, y: 0 }} className="absolute left-8 right-8 top-1/2 z-20 rounded-[20px] bg-[#FFFCF7] p-5 text-center shadow-[0_18px_48px_rgba(60,54,48,0.2)]" exit={{ opacity: 0, y: -8 }} initial={{ opacity: 0, y: 8 }}><Check className="mx-auto mb-2 size-6 text-[#B99A63]" /><p className="text-sm font-semibold">{message}</p></motion.div>;
 }
@@ -933,8 +812,4 @@ function parseWeather(value: string): AuraWeather {
 function rotate(current: string[], options: string[]) {
   const first = options.find((item) => !current.includes(item));
   return first ? [...current.slice(1), first] : options.slice(0, 3);
-}
-
-function formatToday() {
-  return new Intl.DateTimeFormat("zh-CN", { month: "long", day: "numeric", weekday: "long" }).format(new Date());
 }

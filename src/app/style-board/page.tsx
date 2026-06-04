@@ -299,7 +299,7 @@ function ColorSystemBoard() {
     <BoardSection
       index="04"
       title="今日色卡系统"
-      note="主色是结果页视觉中心，辅助色和规避色必须清楚区分。"
+      note="主色是结果页视觉中心，辅助色和点缀色必须清楚区分。"
     >
       <div className="grid gap-5 lg:grid-cols-[1.28fr_0.72fr]">
         <article className="overflow-hidden rounded-[2.25rem] border border-[#D7CBBB] bg-[#FFFCF7] shadow-aura-lift">
@@ -332,7 +332,7 @@ function ColorSystemBoard() {
             reason="适合放在上装或内搭，提亮脸周。"
           />
           <ColorRoleCard
-            role="规避色"
+            role="点缀色"
             name="高饱和橙"
             hex="#FF6A00"
             color="#FF6A00"
@@ -466,7 +466,7 @@ function ResultScreenMock() {
         <div className="grid grid-cols-3 gap-px bg-[#FFFCF7]/28">
           <ResultColor label="主色" name="雾蓝" color="#8EA7B8" />
           <ResultColor label="辅助" name="奶油白" color="#F3EBDD" />
-          <ResultColor label="规避" name="橙" color="#FF6A00" />
+          <ResultColor label="点缀" name="橙" color="#FF6A00" />
         </div>
       </div>
       <div className="rounded-[1.35rem] bg-[#F8F3EA] p-4">
@@ -510,7 +510,7 @@ function ResultDetailCard() {
         <div className="grid grid-cols-3 gap-2">
           <ColorMini label="主色" name="雾蓝" color="#8EA7B8" />
           <ColorMini label="辅助色" name="奶油白" color="#F3EBDD" />
-          <ColorMini label="规避色" name="高饱和橙" color="#FF6A00" />
+          <ColorMini label="点缀色" name="高饱和橙" color="#FF6A00" />
         </div>
         <ResultBlock title="穿搭建议">
           奶油白针织或衬衫 + 深灰直筒半裙 / 垂坠西裤 + 浅灰西装或短风衣。
@@ -560,7 +560,7 @@ function SharePoster({ compact = false }: { compact?: boolean }) {
         <div className="mx-6 mt-4 grid grid-cols-[1.4fr_0.8fr_0.8fr] gap-2">
           <ShareSwatch label="主色" name="雾蓝" color="#8EA7B8" large />
           <ShareSwatch label="辅助" name="奶油白" color="#F3EBDD" />
-          <ShareSwatch label="规避" name="橙" color="#D58A4B" />
+          <ShareSwatch label="点缀" name="橙" color="#D58A4B" />
         </div>
 
         <div className="mx-6 mt-5 flex flex-wrap gap-2">

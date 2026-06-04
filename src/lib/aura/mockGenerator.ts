@@ -29,7 +29,7 @@ export function generateDailyAura(
     isRegenerated,
     "secondary",
   );
-  const avoidMeta = pickAvoidColor(
+  const accentMeta = pickAccentColor(
     colorLibrary.filter(
       (color) => color.name !== primaryMeta.name && color.name !== secondaryMeta.name,
     ),
@@ -38,7 +38,7 @@ export function generateDailyAura(
   const title = buildTitle(input.desiredAura || "清冷", input, isRegenerated);
   const primaryColor = toAuraColor(primaryMeta, "primary", buildPrimaryReason(primaryMeta.name, input, safeProfile));
   const secondaryColor = toAuraColor(secondaryMeta, "secondary", `${secondaryMeta.name}用来衔接${primaryMeta.name}，放在内搭、鞋包或配饰上，降低搭配出错率。`);
-  const avoidColor = toAuraColor(avoidMeta, "avoid", buildAvoidReason(avoidMeta.name, input));
+  const accentColor = toAuraColor(accentMeta, "accent", buildAccentReason(accentMeta.name, input));
   const outfitAdvice = buildOutfitAdvice(input, primaryColor.name, secondaryColor.name);
   const makeupAdvice = buildMakeupAdvice(input, primaryColor.name, secondaryColor.name);
   const dailyQuote = buildQuote(input.desiredAura || "清冷", input.energy || "中", isRegenerated);
@@ -52,7 +52,7 @@ export function generateDailyAura(
     title,
     primaryColor,
     secondaryColor,
-    avoidColor,
+    accentColor,
     colorExplanation: `因为你选择了${input.scene}、${input.weather}、${input.mood}、精力${input.energy}，并希望呈现${input.desiredAura}感，所以今天用${primaryColor.name}做主色：它能服务今天的场景边界，也能把情绪复杂度降下来。你的档案偏好是${safeProfile.commonStyles.slice(0, 3).join("、")}，因此辅助色选择${secondaryColor.name}，让整体更容易落地。${input.specialNeed ? `特别诉求里提到「${input.specialNeed}」，建议把重点放在脸周提亮和利落线条，不额外增加搭配负担。` : ""}`,
     outfitAdvice,
     makeupAdvice,
@@ -61,7 +61,7 @@ export function generateDailyAura(
       productName: "Today Aura",
       date,
       title,
-      colors: { primary: primaryColor, secondary: secondaryColor, avoid: avoidColor },
+      colors: { primary: primaryColor, secondary: secondaryColor, accent: accentColor },
       outfitKeywords: [
         primaryColor.name,
         formalScenes.includes(input.scene) ? "直线轮廓" : "轻松比例",
@@ -112,13 +112,15 @@ function pickColor(
   return scored.sort((a, b) => b.score - a.score)[0]?.color ?? colors[0];
 }
 
-function pickAvoidColor(colors: typeof colorLibrary, input: DailyAuraInput) {
+function pickAccentColor(colors: typeof colorLibrary, input: DailyAuraInput) {
   const scored = colors.map((color) => {
     let score = 0;
-    if (["亮橙", "柔黄"].includes(color.name) && calmMoods.includes(input.mood)) score += 8;
-    if (["亮橙", "酒红"].includes(color.name) && formalScenes.includes(input.scene)) score += 6;
-    if (["炭褐", "酒红"].includes(color.name) && ["热", "潮湿"].includes(input.weather)) score += 4;
-    if (color.name === "亮橙") score += 2;
+    if (["灰蓝", "鼠尾草绿", "玫瑰雾"].includes(color.name) && calmMoods.includes(input.mood)) score += 5;
+    if (["酒红", "柔黄", "玫瑰雾"].includes(color.name) && socialScenes.includes(input.scene)) score += 6;
+    if (["炭褐", "灰蓝"].includes(color.name) && formalScenes.includes(input.scene)) score += 5;
+    if (["奶油白", "柔黄"].includes(color.name) && (input.energy === "低" || lowEnergyMoods.includes(input.mood))) score += 3;
+    if (["热", "潮湿"].includes(input.weather) && ["鼠尾草绿", "奶油白"].includes(color.name)) score += 4;
+    if (color.name === "亮橙" && calmMoods.includes(input.mood)) score -= 6;
     return { color, score };
   });
   return scored.sort((a, b) => b.score - a.score)[0]?.color ?? colors[0];
@@ -167,8 +169,8 @@ function buildPrimaryReason(colorName: string, input: DailyAuraInput, profile: U
   return `今天是${input.scene}，天气是${input.weather}，心情偏${input.mood}，${colorName}能和你档案中的${profile.commonStyles.slice(0, 2).join("、")}偏好保持一致，同时不增加选择负担。`;
 }
 
-function buildAvoidReason(colorName: string, input: DailyAuraInput) {
-  return `今天是${input.scene}且情绪为${input.mood}，大面积${colorName}容易增加视觉噪音或抢走表达重点，建议只作为发夹、包饰或袜子的小面积点缀。`;
+function buildAccentReason(colorName: string, input: DailyAuraInput) {
+  return `今天是${input.scene}且情绪为${input.mood}，${colorName}适合做小面积点缀，放在耳饰、包饰、发夹或袜子上，给整体增加一点呼吸感。`;
 }
 
 function buildOutfitAdvice(input: DailyAuraInput, primary: string, secondary: string) {

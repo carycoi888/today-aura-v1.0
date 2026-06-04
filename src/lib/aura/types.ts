@@ -43,7 +43,7 @@ export type DailyAuraInput = {
 export type AuraColor = {
   name: string;
   hex: string;
-  role: "primary" | "secondary" | "avoid";
+  role: "primary" | "secondary" | "accent";
   reason: string;
   usage: string;
 };
@@ -73,7 +73,7 @@ export type ShareCardData = {
   colors: {
     primary: AuraColor;
     secondary: AuraColor;
-    avoid: AuraColor;
+    accent: AuraColor;
   };
   outfitKeywords: string[];
   quote: string;
@@ -86,7 +86,7 @@ export type DailyAuraResult = {
   title: string;
   primaryColor: AuraColor;
   secondaryColor: AuraColor;
-  avoidColor: AuraColor;
+  accentColor: AuraColor;
   colorExplanation: string;
   outfitAdvice: OutfitAdvice;
   makeupAdvice: MakeupAdvice;
