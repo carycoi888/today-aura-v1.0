@@ -58,6 +58,15 @@ type Screen =
   | "profile"
   | "styleEdit";
 
+const defaultInput: DailyAuraInput = {
+  scene: "通勤",
+  weather: "阴",
+  mood: "焦虑",
+  energy: "中",
+  desiredAura: "清冷",
+  specialNeed: "今天想显得精神一点，但不要太用力。",
+};
+
 const blankInput: DailyAuraInput = {
   scene: "",
   weather: "",
@@ -65,28 +74,6 @@ const blankInput: DailyAuraInput = {
   energy: "",
   desiredAura: "",
   specialNeed: "",
-};
-
-const screenNumber: Partial<Record<Screen, string>> = {
-  home: "01",
-  scene: "02",
-  weather: "03",
-  mood: "04",
-  energy: "05",
-  aura: "06",
-  generating: "07",
-  overview: "08",
-  colors: "09",
-  outfit: "10",
-  makeup: "11",
-  share34: "12",
-  share916: "13",
-  history: "15",
-  regenerate: "16",
-  regenerated: "17",
-  shareOptions: "18",
-  profile: "19",
-  styleEdit: "20",
 };
 
 export function AuraPrototype() {
@@ -100,6 +87,7 @@ export function AuraPrototype() {
   const [styleDraft, setStyleDraft] = useState<string[]>(defaultProfile.commonStyles);
   const [regeneratedUsed, setRegeneratedUsed] = useState(false);
   const isCurrentSaved = result ? history.some((item) => item.id === result.id) : false;
+  const previewResult = result ?? generateDailyAura(defaultInput, profile, false);
 
   useEffect(() => {
     const storedProfile = readProfile();
@@ -127,6 +115,14 @@ export function AuraPrototype() {
     setResult(next);
     setRegeneratedUsed(false);
     setScreen("generating");
+  }
+
+  function openDefaultResult() {
+    const next = generateDailyAura(defaultInput, profile, false);
+    setInput(defaultInput);
+    setResult(next);
+    setRegeneratedUsed(false);
+    setScreen("overview");
   }
 
   function saveCurrent() {
@@ -281,11 +277,15 @@ export function AuraPrototype() {
           <HomeScreen
             history={history}
             profile={profile}
-            result={result}
+            result={previewResult}
+            hasRealResult={Boolean(result)}
             onEditProfile={() => setScreen("profile")}
             onGenerate={() => setScreen("scene")}
             onHistory={() => setScreen("history")}
-            onRecent={() => setScreen(result ? "overview" : "history")}
+            onRecent={() => {
+              if (result) setScreen("overview");
+              else openDefaultResult();
+            }}
           />
         );
     }
@@ -293,15 +293,14 @@ export function AuraPrototype() {
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="min-h-screen bg-[#EFE7DC] px-3 py-5 text-[#292521]">
-        <section className="mx-auto flex min-h-[calc(100vh-40px)] w-full max-w-[430px] flex-col overflow-hidden rounded-[32px] border border-[#E2D8CB] bg-[#F8F3EA] shadow-[0_22px_70px_rgba(60,54,48,0.16)]">
-          <PhoneStatus screen={screen} onHome={() => setScreen("home")} />
-          <div className="relative flex-1 overflow-hidden">
+      <main className="h-dvh overflow-hidden bg-[#EFE7DC] px-3 py-3 text-[#292521] sm:py-5">
+        <section className="mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden rounded-[32px] border border-[#E2D8CB] bg-[#F8F3EA] shadow-[0_22px_70px_rgba(60,54,48,0.16)]">
+          <div className="relative min-h-0 flex-1 overflow-hidden">
             <AnimatePresence mode="wait">
               <motion.div
                 key={screen}
                 animate={{ opacity: 1, y: 0 }}
-                className="h-full overflow-y-auto px-5 pb-24 pt-4"
+                className="h-full overflow-y-auto px-5 pb-6 pt-[calc(env(safe-area-inset-top)+22px)]"
                 exit={{ opacity: 0, y: reduceMotion ? 0 : -6 }}
                 initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
                 transition={{ duration: 0.24, ease: "easeOut" }}
@@ -320,21 +319,10 @@ export function AuraPrototype() {
   );
 }
 
-function PhoneStatus({ screen, onHome }: { screen: Screen; onHome: () => void }) {
-  return (
-    <div className="flex h-12 items-center justify-between px-5 pt-1 text-[12px] font-semibold">
-      <span>9:41</span>
-      <button className="rounded-full bg-[#292521] px-8 py-2 text-transparent" onClick={onHome} type="button">
-        home
-      </button>
-      <span className="text-[#5E564F]">{screenNumber[screen] ?? "01"}</span>
-    </div>
-  );
-}
-
 function HomeScreen({
   profile,
   result,
+  hasRealResult,
   history,
   onGenerate,
   onEditProfile,
@@ -342,7 +330,8 @@ function HomeScreen({
   onHistory,
 }: {
   profile: UserProfile;
-  result: DailyAuraResult | null;
+  result: DailyAuraResult;
+  hasRealResult: boolean;
   history: DailyAuraResult[];
   onGenerate: () => void;
   onEditProfile: () => void;
@@ -350,24 +339,63 @@ function HomeScreen({
   onHistory: () => void;
 }) {
   return (
-    <div className="space-y-5">
-      <header className="flex items-start justify-between">
+    <div className="space-y-4">
+      <header className="flex items-start justify-between px-1">
         <div>
-          <p className="font-serif text-[18px] font-semibold">Today Aura</p>
-          <p className="mt-2 text-sm text-[#9B9288]">{formatToday()}</p>
+          <p className="font-serif text-[19px] font-semibold tracking-normal">Today Aura</p>
+          <p className="mt-2 text-sm text-[#7A6E62]">今日气场 · {formatToday()}</p>
         </div>
-        <CalendarDays className="size-5 text-[#3C3630]" />
+        <button className="flex size-10 items-center justify-center rounded-full border border-[#E2D8CB] bg-[#FFFCF7]" onClick={onEditProfile} type="button">
+          <Pencil className="size-4 text-[#3C3630]" />
+        </button>
       </header>
-      <motion.section whileHover={{ y: -2 }} className="rounded-[28px] border border-[#E2D8CB] bg-[#FFFCF7] p-5 shadow-[0_14px_40px_rgba(60,54,48,0.08)]">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-[30px] font-semibold leading-[1.08]">今天想以什么状态出现？</h1>
-            <p className="mt-3 text-sm leading-6 text-[#5E564F]">出门前 1 分钟，定好今天的颜色、穿搭和整体气场。</p>
+
+      <motion.section
+        whileHover={{ y: -2 }}
+        className="relative overflow-hidden rounded-[30px] border border-[#D8CBBE] bg-[#FFFCF7] p-5 shadow-[0_18px_48px_rgba(60,54,48,0.11)]"
+      >
+        <div
+          aria-hidden="true"
+          className="absolute right-[-36px] top-[-42px] h-44 w-44 rounded-full opacity-30 blur-3xl"
+          style={{ backgroundColor: result.primaryColor.hex }}
+        />
+        <div className="relative">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-[#B99A63]">今日默认气场</p>
+              <h1 className="mt-2 text-[31px] font-semibold leading-[1.08] tracking-normal">
+                今天想以什么状态出现？
+              </h1>
+              <p className="mt-3 text-sm leading-6 text-[#5E564F]">
+                出门前 1 分钟，定好今天的颜色、穿搭和整体气场。
+              </p>
+            </div>
+            <div className="shrink-0 rounded-[18px] border border-[#E2D8CB] bg-[#F8F3EA] px-3 py-2 text-center">
+              <p className="font-serif text-[26px] font-semibold leading-none">{new Date().getDate()}</p>
+              <p className="mt-1 text-[11px] text-[#9B9288]">{new Date().getMonth() + 1}月</p>
+            </div>
           </div>
-          <span className="min-w-14 text-right font-serif text-[26px] font-semibold">6 / 04</span>
+
+          <div className="mt-5 grid grid-cols-[1.15fr_0.85fr] gap-3">
+            <div className="rounded-[24px] p-4 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }}>
+              <p className="text-xs opacity-80">推荐主色</p>
+              <p className="mt-8 text-[34px] font-semibold leading-none">{result.primaryColor.name}</p>
+              <p className="mt-3 text-xs leading-5 opacity-90">{result.title}</p>
+            </div>
+            <div className="grid gap-3">
+              <ColorMemo label="辅助" name={result.secondaryColor.name} color={result.secondaryColor.hex} />
+              <ColorMemo label="规避" name={result.avoidColor.name} color={result.avoidColor.hex} />
+            </div>
+          </div>
+
+          <p className="mt-4 rounded-[18px] bg-[#F8F3EA] px-4 py-3 text-sm font-semibold leading-6 text-[#3C3630]">
+            {result.dailyQuote}
+          </p>
+
+          <PrimaryButton className="mt-5" onClick={onGenerate}>生成今日气场</PrimaryButton>
         </div>
-        <PrimaryButton className="mt-6" onClick={onGenerate}>生成今日气场</PrimaryButton>
       </motion.section>
+
       <button className="w-full rounded-[24px] border border-[#E2D8CB] bg-[#FFFCF7] p-4 text-left" onClick={onEditProfile} type="button">
         <div className="flex items-center justify-between">
           <div>
@@ -383,23 +411,29 @@ function HomeScreen({
       <section className="w-full overflow-hidden rounded-[26px] border border-[#E2D8CB] bg-[#FFFCF7] text-left">
         <div className="p-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm text-[#9B9288]">最近气场卡片</p>
+            <p className="text-sm text-[#9B9288]">{hasRealResult ? "最近气场卡片" : "默认气场预览"}</p>
             <button className="text-xs text-[#B99A63]" onClick={onHistory} type="button">查看记录</button>
           </div>
           <button className="mt-3 w-full text-left" onClick={onRecent} type="button">
-            {result ? (
             <div className="rounded-[20px] p-4 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }}>
               <p className="text-sm opacity-80">{result.date}</p>
               <p className="mt-3 text-2xl font-semibold">{result.title}</p>
               <p className="mt-2 text-sm opacity-90">{result.dailyQuote}</p>
             </div>
-          ) : (
-            <p className="text-sm leading-6 text-[#5E564F]">还没有保存记录，生成后可以在这里快速回看。</p>
-          )}
           </button>
         </div>
       </section>
       <p className="text-center text-xs text-[#9B9288]">已保存 {history.length} 张今日气场卡片</p>
+    </div>
+  );
+}
+
+function ColorMemo({ label, name, color }: { label: string; name: string; color: string }) {
+  return (
+    <div className="rounded-[20px] border border-[#E2D8CB] bg-[#F8F3EA] p-3">
+      <div className="h-10 rounded-[12px]" style={{ backgroundColor: color }} />
+      <p className="mt-2 text-[11px] text-[#9B9288]">{label}</p>
+      <p className="text-sm font-semibold">{name}</p>
     </div>
   );
 }
@@ -524,21 +558,54 @@ function OverviewScreen({
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-[#9B9288]">{result.date}</p>
-      <h1 className="text-[34px] font-semibold leading-tight">{result.title}</h1>
-      {regeneratedView ? <p className="rounded-full bg-[#EFE7DC] px-4 py-2 text-sm text-[#7A6E62]">已根据同样的输入换一个角度。</p> : null}
-      <motion.section animate="show" className="overflow-hidden rounded-[28px] border border-[#E2D8CB] bg-[#FFFCF7]" initial="hidden" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}>
-        <motion.div className="min-h-56 p-5 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }} variants={riseVariant}>
-          <p className="text-sm opacity-80">今日主色</p>
-          <h2 className="mt-12 text-[48px] font-semibold leading-none">{result.primaryColor.name}</h2>
-          <p className="mt-4 text-sm leading-6 opacity-90">{result.primaryColor.usage}</p>
+      <motion.section
+        animate="show"
+        className="overflow-hidden rounded-[30px] border border-[#D6C8BA] bg-[#FFFCF7] shadow-[0_18px_50px_rgba(60,54,48,0.12)]"
+        initial="hidden"
+        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
+      >
+        <motion.div className="relative min-h-[304px] overflow-hidden p-5 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }} variants={riseVariant}>
+          <div
+            aria-hidden="true"
+            className="absolute bottom-[-64px] right-[-46px] h-44 w-44 rounded-full bg-white/20 blur-2xl"
+          />
+          <div className="relative flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm opacity-85">今日气场</p>
+              <h1 className="mt-2 text-[42px] font-semibold leading-none tracking-normal">{result.title}</h1>
+            </div>
+            <div className="rounded-[18px] border border-white/28 bg-white/12 px-3 py-2 text-right">
+              <CalendarDays className="ml-auto size-4 opacity-85" />
+              <p className="mt-2 text-xs leading-4 opacity-85">{result.date}</p>
+            </div>
+          </div>
+
+          <div className="relative mt-12">
+            <p className="text-xs opacity-80">Main Color</p>
+            <h2 className="mt-1 text-[58px] font-semibold leading-none">{result.primaryColor.name}</h2>
+            <p className="mt-4 max-w-[15rem] text-sm leading-6 opacity-92">{result.primaryColor.usage}</p>
+          </div>
         </motion.div>
-        <motion.div className="grid grid-cols-2 gap-3 p-4" variants={riseVariant}>
-          <MiniColor color={result.secondaryColor.hex} label="辅助色" name={result.secondaryColor.name} />
-          <MiniColor color={result.avoidColor.hex} label="规避色" name={result.avoidColor.name} />
+
+        <motion.div className="grid grid-cols-3 gap-3 p-4" variants={riseVariant}>
+          <MiniColor color={result.primaryColor.hex} label="主色" name={result.primaryColor.name} />
+          <MiniColor color={result.secondaryColor.hex} label="辅助" name={result.secondaryColor.name} />
+          <MiniColor color={result.avoidColor.hex} label="规避" name={result.avoidColor.name} />
         </motion.div>
       </motion.section>
-      <section className="rounded-[24px] bg-[#3C3630] p-5 text-[#FFFCF7]">
+
+      {regeneratedView ? <p className="rounded-full bg-[#EFE7DC] px-4 py-2 text-sm text-[#7A6E62]">已根据同样的输入换一个角度。</p> : null}
+
+      <section className="rounded-[26px] border border-[#E2D8CB] bg-[#FFFCF7] p-5">
+        <p className="text-xs font-semibold text-[#B99A63]">今天直接照做</p>
+        <div className="mt-4 space-y-3 text-sm leading-6 text-[#5E564F]">
+          <p><span className="font-semibold text-[#292521]">轮廓：</span>{result.outfitAdvice.silhouette}</p>
+          <p><span className="font-semibold text-[#292521]">上装：</span>{result.outfitAdvice.top}</p>
+          <p><span className="font-semibold text-[#292521]">妆容：</span>{result.makeupAdvice.lip}</p>
+        </div>
+      </section>
+
+      <section className="rounded-[24px] bg-[#3C3630] p-5 text-[#FFFCF7] shadow-[0_14px_38px_rgba(60,54,48,0.14)]">
         <p className="text-sm text-[#D8CFC2]">今日短句</p>
         <p className="mt-2 text-[22px] font-semibold leading-8">{result.dailyQuote}</p>
       </section>
@@ -815,7 +882,7 @@ function BottomNav({ active, onGo }: { active: Screen; onGo: (screen: Screen) =>
     ["shareOptions", "我的", Heart],
   ] as const;
   return (
-    <nav className="grid h-[74px] grid-cols-4 border-t border-[#E2D8CB] bg-[#FFFCF7]/92 px-2 pb-2 pt-2">
+    <nav className="sticky bottom-0 z-10 grid h-[calc(74px+env(safe-area-inset-bottom))] shrink-0 grid-cols-4 border-t border-[#E2D8CB] bg-[#FFFCF7]/96 px-2 pb-[calc(8px+env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_28px_rgba(60,54,48,0.06)]">
       {items.map(([key, label, Icon]) => <button className={`flex flex-col items-center justify-center gap-1 text-xs ${active === key ? "text-[#B99A63]" : "text-[#5E564F]"}`} key={key} onClick={() => onGo(key)} type="button"><Icon className="size-4" />{label}</button>)}
     </nav>
   );
