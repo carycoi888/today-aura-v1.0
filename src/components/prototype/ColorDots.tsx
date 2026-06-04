@@ -22,9 +22,10 @@ export function ColorDots({
     md: "size-8",
     lg: "size-20",
   }[size];
+  const gapClass = size === "sm" ? "gap-2" : "gap-3";
 
   return (
-    <div className="flex items-center gap-3">
+    <div className={showNames ? "grid w-full grid-cols-3 items-start gap-8" : `flex items-center ${gapClass}`}>
       {colors.map((color, index) => (
         <motion.div
           animate={{ opacity: 1, y: 0 }}
@@ -37,7 +38,7 @@ export function ColorDots({
             <p className="mb-3 text-[14px] font-semibold text-[#5E564F]">{color.label}</p>
           ) : null}
           <span
-            className={`${sizeClass} block rounded-full border border-[#E2D8CB] shadow-[0_8px_18px_rgba(60,54,48,0.08)]`}
+            className={`${sizeClass} block rounded-full border border-[#E2D8CB]`}
             style={{ backgroundColor: color.hex }}
           />
           {showNames ? (

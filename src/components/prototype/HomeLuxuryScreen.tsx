@@ -49,10 +49,10 @@ export function HomeLuxuryScreen({
     >
       <header className="flex items-start justify-between">
         <div>
-          <h1 className="font-serif text-[42px] font-medium leading-none tracking-normal text-[#292521]">
+          <h1 className="font-serif text-[42px] font-medium leading-[0.92] tracking-normal text-[#292521]">
             Today Aura
           </h1>
-          <p className="mt-4 text-[16px] font-semibold tracking-[0.02em] text-[#9B9288]">
+          <p className="mt-2 text-[16px] font-semibold tracking-[0.02em] text-[#9B9288]">
             你的每日气场指南
           </p>
         </div>
@@ -87,14 +87,14 @@ export function HomeLuxuryScreen({
       </section>
 
       <section className="mt-11">
-        <h2 className="text-[40px] font-semibold leading-[1.13] tracking-normal text-[#292521]">
+        <h2 className="font-serif text-[42px] font-semibold leading-[1.12] tracking-normal text-[#292521]">
           今天想以
           <br />
           什么状态出现？
         </h2>
       </section>
 
-      <section className="mt-11 flex justify-between">
+      <section className="mt-11">
         <ColorDots colors={colorItems} showNames size="lg" />
       </section>
 
@@ -110,7 +110,7 @@ export function HomeLuxuryScreen({
       <section className="mt-10 border-t border-[#E2D8CB] pt-6">
         <p className="mb-4 text-[15px] font-semibold text-[#9B9288]">最近记录</p>
         <motion.div
-          className="overflow-hidden rounded-[22px] border border-[#E2D8CB] bg-[#FFFCF7] shadow-[0_10px_28px_rgba(60,54,48,0.06)]"
+          className="overflow-hidden rounded-[22px] border border-[#E2D8CB] bg-[#F7F1E8] shadow-[0_8px_22px_rgba(60,54,48,0.04)]"
           whileTap={{ y: -1 }}
         >
           <AuraRecordRow

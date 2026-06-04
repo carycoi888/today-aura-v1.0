@@ -5,6 +5,7 @@ import {
   CalendarDays,
   Check,
   ChevronLeft,
+  ChevronRight,
   ListChecks,
   RefreshCcw,
   Share2,
@@ -792,7 +793,19 @@ function EmptyResult({ onGenerate }: { onGenerate: () => void }) {
 }
 
 function ProfileRow({ label, value, onClick }: { label: string; value: string; onClick: () => void }) {
-  return <button className="w-full rounded-[22px] border border-[#E2D8CB] bg-[#FFFCF7] p-4 text-left" onClick={onClick} type="button"><p className="text-xs text-[#9B9288]">{label}</p><p className="mt-2 font-semibold">{value}</p></button>;
+  return (
+    <button
+      className="flex w-full items-center gap-3 rounded-[22px] border border-[#E2D8CB] bg-[#FFFCF7] p-4 text-left"
+      onClick={onClick}
+      type="button"
+    >
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs text-[#9B9288]">{label}</span>
+        <span className="mt-2 block truncate font-semibold">{value}</span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-[#B8AEA3]" />
+    </button>
+  );
 }
 
 function displayWeather(value: string) {

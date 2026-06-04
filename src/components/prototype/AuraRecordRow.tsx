@@ -47,10 +47,10 @@ export function AuraRecordRow({
       type="button"
       whileTap={{ scale: 0.99 }}
     >
-      <span className="w-[64px] shrink-0 font-serif text-[20px] font-semibold text-[#3C3630]">
+      <span className="w-[78px] shrink-0 whitespace-nowrap font-serif text-[18px] font-semibold text-[#3C3630]">
         {date}
       </span>
-      <span className="min-w-0 flex-1 text-[15px] font-semibold text-[#5E564F]">
+      <span className="min-w-0 flex-1 truncate text-[15px] font-semibold text-[#5E564F]">
         {title}
       </span>
       {showDots ? <ColorDots colors={colors} size="sm" /> : null}
