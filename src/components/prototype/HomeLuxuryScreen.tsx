@@ -87,7 +87,10 @@ export function HomeLuxuryScreen({
       </section>
 
       <section className="mt-11">
-        <h2 className="font-serif text-[42px] font-semibold leading-[1.12] tracking-normal text-[#292521]">
+        <h2
+          className="text-[42px] font-semibold leading-[1.12] tracking-normal text-[#292521]"
+          style={{ fontFamily: '"Songti SC", "Noto Serif CJK SC", STSong, SimSun, serif' }}
+        >
           今天想以
           <br />
           什么状态出现？
