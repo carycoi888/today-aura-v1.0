@@ -6,7 +6,6 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  ListChecks,
   RefreshCcw,
   Share2,
 } from "lucide-react";
@@ -220,14 +219,11 @@ export function AuraPrototype() {
             result={result}
             regeneratedUsed={regeneratedUsed || result.isRegenerated}
             regeneratedView={screen === "regenerated"}
-            onColors={() => setScreen("colors")}
-            onHistory={() => setScreen("history")}
-            onMakeup={() => setScreen("makeup")}
-            onOutfit={() => setScreen("outfit")}
-            onRegenerate={() => setScreen("regenerate")}
-            onSave={saveCurrent}
-            saved={isCurrentSaved}
-            onShare={() => setScreen("share34")}
+            onRegenerate={confirmRegenerate}
+            onSharePick={(message) => {
+              setToast(message);
+              window.setTimeout(() => setToast(""), 1400);
+            }}
           />
         ) : (
           <EmptyResult onGenerate={() => setScreen("scene")} />
@@ -429,36 +425,27 @@ function OverviewScreen({
   result,
   regeneratedView,
   regeneratedUsed,
-  saved,
-  onColors,
-  onOutfit,
-  onMakeup,
-  onShare,
-  onSave,
   onRegenerate,
-  onHistory,
+  onSharePick,
 }: {
   result: DailyAuraResult;
   regeneratedView: boolean;
   regeneratedUsed: boolean;
-  saved: boolean;
-  onColors: () => void;
-  onOutfit: () => void;
-  onMakeup: () => void;
-  onShare: () => void;
-  onSave: () => void;
   onRegenerate: () => void;
-  onHistory: () => void;
+  onSharePick: (message: string) => void;
 }) {
+  const [activeAdvice, setActiveAdvice] = useState<"outfit" | "makeup">("outfit");
+  const [shareOpen, setShareOpen] = useState(false);
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <motion.section
         animate="show"
         className="overflow-hidden rounded-[30px] border border-[#D6C8BA] bg-[#FFFCF7] shadow-[0_18px_50px_rgba(60,54,48,0.12)]"
         initial="hidden"
         variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
       >
-        <motion.div className="relative min-h-[304px] overflow-hidden p-5 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }} variants={riseVariant}>
+        <motion.div className="relative min-h-[286px] overflow-hidden p-5 text-[#FFFCF7]" style={{ backgroundColor: result.primaryColor.hex }} variants={riseVariant}>
           <div
             aria-hidden="true"
             className="absolute bottom-[-64px] right-[-46px] h-44 w-44 rounded-full bg-white/20 blur-2xl"
@@ -474,49 +461,194 @@ function OverviewScreen({
             </div>
           </div>
 
-          <div className="relative mt-12">
+          <div className="relative mt-10">
             <p className="text-xs opacity-80">Main Color</p>
             <h2 className="mt-1 text-[58px] font-semibold leading-none">{result.primaryColor.name}</h2>
-            <p className="mt-4 max-w-[15rem] text-sm leading-6 opacity-92">{result.primaryColor.usage}</p>
+            <p className="mt-4 max-w-[16rem] text-sm leading-6 opacity-92">{result.dailyQuote}</p>
           </div>
         </motion.div>
 
-        <motion.div className="grid grid-cols-3 gap-3 p-4" variants={riseVariant}>
-          <MiniColor color={result.primaryColor.hex} label="主色" name={result.primaryColor.name} />
-          <MiniColor color={result.secondaryColor.hex} label="辅助" name={result.secondaryColor.name} />
-          <MiniColor color={result.accentColor.hex} label="点缀" name={result.accentColor.name} />
+        <motion.div className="space-y-4 p-4" variants={riseVariant}>
+          <div className="grid grid-cols-3 gap-3">
+            <MiniColor color={result.primaryColor.hex} label="主色" name={result.primaryColor.name} />
+            <MiniColor color={result.secondaryColor.hex} label="辅助" name={result.secondaryColor.name} />
+            <MiniColor color={result.accentColor.hex} label="点缀" name={result.accentColor.name} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <PrimaryButton onClick={() => setShareOpen(true)}>
+              <Share2 className="size-4" />
+              分享
+            </PrimaryButton>
+            <SoftButton disabled={regeneratedUsed} onClick={onRegenerate}>
+              <RefreshCcw className="size-4" />
+              {regeneratedUsed ? "已重新生成" : "重新生成"}
+            </SoftButton>
+          </div>
         </motion.div>
       </motion.section>
 
       {regeneratedView ? <p className="rounded-full bg-[#EFE7DC] px-4 py-2 text-sm text-[#7A6E62]">已根据同样的输入换一个角度。</p> : null}
 
-      <section className="rounded-[26px] border border-[#E2D8CB] bg-[#FFFCF7] p-5">
-        <p className="text-xs font-semibold text-[#B99A63]">今天直接照做</p>
-        <div className="mt-4 space-y-3 text-sm leading-6 text-[#5E564F]">
-          <p><span className="font-semibold text-[#292521]">轮廓：</span>{result.outfitAdvice.silhouette}</p>
-          <p><span className="font-semibold text-[#292521]">上装：</span>{result.outfitAdvice.top}</p>
-          <p><span className="font-semibold text-[#292521]">妆容：</span>{result.makeupAdvice.lip}</p>
+      <section className="rounded-[26px] border border-[#E2D8CB] bg-[#FFFCF7] p-4 shadow-[0_12px_36px_rgba(60,54,48,0.08)]">
+        <div className="grid grid-cols-2 gap-2 rounded-full bg-[#EFE7DC] p-1">
+          {[
+            ["outfit", "穿搭建议"],
+            ["makeup", "妆容配饰"],
+          ].map(([key, label]) => (
+            <button
+              className={`h-10 rounded-full text-sm transition ${activeAdvice === key ? "bg-[#FFFCF7] font-semibold text-[#292521] shadow-sm" : "text-[#7A6E62]"}`}
+              key={key}
+              onClick={() => setActiveAdvice(key as "outfit" | "makeup")}
+              type="button"
+            >
+              {label}
+            </button>
+          ))}
         </div>
+        {activeAdvice === "outfit" ? (
+          <ResultAdviceCard
+            items={[
+              ["整体轮廓", result.outfitAdvice.silhouette],
+              ["上装", result.outfitAdvice.top],
+              ["下装", result.outfitAdvice.bottom],
+              ["外套", result.outfitAdvice.outerwear],
+              ["鞋包", result.outfitAdvice.shoesBag],
+              ["替代方案", result.outfitAdvice.alternative],
+            ]}
+            title="穿搭建议"
+          />
+        ) : (
+          <ResultAdviceCard
+            items={[
+              ["妆感", result.makeupAdvice.finish],
+              ["唇色", result.makeupAdvice.lip],
+              ["眼妆", result.makeupAdvice.eye],
+              ["发型", result.makeupAdvice.hair],
+              ["配饰", result.makeupAdvice.accessory],
+              ["小物 / 香氛", result.makeupAdvice.item],
+            ]}
+            title="妆容配饰"
+          />
+        )}
       </section>
 
-      <section className="rounded-[24px] bg-[#3C3630] p-5 text-[#FFFCF7] shadow-[0_14px_38px_rgba(60,54,48,0.14)]">
-        <p className="text-sm text-[#D8CFC2]">今日短句</p>
-        <p className="mt-2 text-[22px] font-semibold leading-8">{result.dailyQuote}</p>
-      </section>
-      <div className="grid grid-cols-3 gap-2">
-        <SoftButton onClick={onColors}>颜色解释</SoftButton>
-        <SoftButton onClick={onOutfit}>穿搭建议</SoftButton>
-        <SoftButton onClick={onMakeup}>妆容配饰</SoftButton>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <PrimaryButton onClick={onSave}><Check className="size-4" />{saved ? "已保存" : "保存卡片"}</PrimaryButton>
-        <SoftButton disabled={regeneratedUsed} onClick={onRegenerate}><RefreshCcw className="size-4" />{regeneratedUsed ? "已重新生成" : "重新生成"}</SoftButton>
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <SoftButton onClick={onShare}><Share2 className="size-4" />分享卡片</SoftButton>
-        <SoftButton onClick={onHistory}><ListChecks className="size-4" />查看记录</SoftButton>
-      </div>
+      <AnimatePresence>
+        {shareOpen ? (
+          <ShareModal
+            onCancel={() => setShareOpen(false)}
+            onConfirm={(target, ratio) => {
+              setShareOpen(false);
+              onSharePick(`已准备好${ratio}分享卡片 · ${target}`);
+            }}
+            result={result}
+          />
+        ) : null}
+      </AnimatePresence>
     </div>
+  );
+}
+
+function ResultAdviceCard({ title, items }: { title: string; items: [string, string][] }) {
+  return (
+    <motion.div
+      animate={{ opacity: 1, y: 0 }}
+      className="mt-5 space-y-4"
+      initial={{ opacity: 0, y: 8 }}
+      key={title}
+      transition={{ duration: 0.2 }}
+    >
+      <div>
+        <p className="text-xs font-semibold text-[#B99A63]">{title}</p>
+        <h2 className="mt-1 text-[22px] font-semibold text-[#292521]">今天可以这样出现</h2>
+      </div>
+      <div className="space-y-3 text-sm leading-6 text-[#5E564F]">
+        {items.map(([label, value]) => (
+          <p key={label}>
+            <span className="font-semibold text-[#292521]">{label}：</span>
+            {value}
+          </p>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+function ShareModal({
+  result,
+  onCancel,
+  onConfirm,
+}: {
+  result: DailyAuraResult;
+  onCancel: () => void;
+  onConfirm: (target: string, ratio: "3:4" | "9:16") => void;
+}) {
+  const [target, setTarget] = useState("分享给好友");
+  const [ratio, setRatio] = useState<"3:4" | "9:16">("3:4");
+  const targets = ["分享给好友", "朋友圈", "小红书"];
+
+  return (
+    <motion.div
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#292521]/28 px-6"
+      exit={{ opacity: 0 }}
+      initial={{ opacity: 0 }}
+      onClick={onCancel}
+    >
+      <motion.section
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative max-h-[82vh] w-full max-w-[360px] overflow-y-auto rounded-[28px] border border-[#E2D8CB] bg-[#FFFCF7] p-5 shadow-[0_26px_80px_rgba(41,37,33,0.24)]"
+        exit={{ opacity: 0, scale: 0.98, y: 10 }}
+        initial={{ opacity: 0, scale: 0.98, y: 12 }}
+        onClick={(event) => event.stopPropagation()}
+        transition={{ duration: 0.2 }}
+      >
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="font-serif text-[22px] font-semibold leading-none text-[#292521]">Today Aura</p>
+            <h2 className="mt-3 text-[20px] font-semibold">分享今日气场</h2>
+            <p className="mt-2 text-sm leading-6 text-[#7A6E62]">选择去向和卡片比例，保留今天的颜色与状态。</p>
+          </div>
+          <button className="size-9 rounded-full border border-[#E2D8CB] text-sm text-[#7A6E62]" onClick={onCancel} type="button">
+            取消
+          </button>
+        </div>
+
+        <div className="mt-5">
+          <ShareCard result={result} ratio={ratio} small />
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-2 rounded-full bg-[#EFE7DC] p-1">
+          {(["3:4", "9:16"] as const).map((item) => (
+            <button
+              className={`h-10 rounded-full text-sm font-semibold ${ratio === item ? "bg-[#FFFCF7] text-[#292521] shadow-sm" : "text-[#7A6E62]"}`}
+              key={item}
+              onClick={() => setRatio(item)}
+              type="button"
+            >
+              {item === "9:16" ? "9:16 长图" : "3:4 卡片"}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {targets.map((item) => (
+            <button
+              className={`min-h-14 rounded-[16px] border px-2 text-sm font-semibold transition ${target === item ? "border-[#B99A63] bg-[#EFE7DC] text-[#292521]" : "border-[#E2D8CB] bg-[#FFFCF7] text-[#5E564F]"}`}
+              key={item}
+              onClick={() => setTarget(item)}
+              type="button"
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-5 grid grid-cols-[0.8fr_1.2fr] gap-3">
+          <SoftButton onClick={onCancel}>取消</SoftButton>
+          <PrimaryButton onClick={() => onConfirm(target, ratio)}>确认分享</PrimaryButton>
+        </div>
+      </motion.section>
+    </motion.div>
   );
 }
 
