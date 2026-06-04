@@ -87,13 +87,16 @@ export function HomeLuxuryScreen({
       </section>
 
       <section className="mt-11">
-        <h2
-          className="aura-home-question-title text-[42px] font-semibold leading-[1.12] tracking-normal text-[#292521]"
-        >
-          今天想以
-          <br />
-          什么状态出现？
-        </h2>
+        <h2 className="sr-only">今天想以什么状态出现？</h2>
+        <Image
+          alt=""
+          aria-hidden="true"
+          className="h-auto w-[340px] max-w-full"
+          height={103}
+          priority
+          src="/images/today-aura-home-question.png"
+          width={340}
+        />
       </section>
 
       <section className="mt-11">

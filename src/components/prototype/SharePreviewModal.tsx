@@ -1,9 +1,10 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { Aperture, Check, Download, MessageCircle, X } from "lucide-react";
+import { Check, Download, X } from "lucide-react";
 import { useState } from "react";
-import type { DailyAuraResult } from "@/lib/aura/types";
+import type { AuraColor, DailyAuraResult } from "@/lib/aura/types";
+import { readableMutedTextColor, readableSoftLayer, readableTextColor } from "@/lib/aura/colorContrast";
 
 type ShareRatio = "3:4" | "9:16";
 type ShareTarget = "微信好友" | "朋友圈" | "小红书" | "保存图片";
@@ -28,9 +29,15 @@ export function SharePreviewModal({
   onShare: (message: string) => void;
 }) {
   const [ratio, setRatio] = useState<ShareRatio>("9:16");
+  const [notice, setNotice] = useState("");
 
   function pickChannel(target: ShareTarget) {
-    onShare(target === "保存图片" ? "已保存分享卡片" : `已准备好分享到${target}`);
+    if (target === "保存图片") {
+      setNotice("已保存分享卡片");
+      window.setTimeout(() => setNotice(""), 1500);
+      return;
+    }
+    onShare(`已准备好分享到${target}`);
   }
 
   return (
@@ -97,6 +104,19 @@ export function SharePreviewModal({
             取消
           </button>
         </div>
+        <AnimatePresence>
+          {notice ? (
+            <motion.div
+              animate={{ opacity: 1, y: 0 }}
+              className="fixed bottom-[calc(env(safe-area-inset-bottom)+22px)] left-1/2 z-[60] -translate-x-1/2 whitespace-nowrap rounded-full bg-[#292521] px-5 py-3 text-sm font-semibold text-[#FFFCF7] shadow-[0_14px_34px_rgba(41,37,33,0.28)]"
+              exit={{ opacity: 0, y: 8 }}
+              initial={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.18 }}
+            >
+              {notice}
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
       </motion.section>
     </motion.div>
   );
@@ -151,30 +171,54 @@ function RatioOption({
 
 function PreviewCard({ ratio, result }: { ratio: ShareRatio; result: DailyAuraResult }) {
   const tall = ratio === "9:16";
+  const heroTextColor = readableTextColor(result.primaryColor.hex);
+  const heroMutedColor = readableMutedTextColor(result.primaryColor.hex);
+  const heroLayer = readableSoftLayer(result.primaryColor.hex);
+  const colors: Array<[string, AuraColor]> = [
+    ["主色", result.primaryColor],
+    ["辅助", result.secondaryColor],
+    ["点缀", result.accentColor],
+  ];
   return (
-    <div className={`${tall ? "h-[198px]" : "h-[168px]"} w-[124px] overflow-hidden rounded-[14px] bg-[#FFFCF7] px-3 py-3 text-[#292521]`}>
-      <div className="flex items-center justify-between gap-2 text-[8px] font-semibold">
-        <span className="font-serif">Today Aura</span>
-        <span className="shrink-0">{result.date}</span>
+    <div className={`${tall ? "h-[198px]" : "h-[168px]"} w-[124px] overflow-hidden rounded-[14px] bg-[#FFFCF7] text-[#292521]`}>
+      <div
+        className={`${tall ? "h-[100px]" : "h-[82px]"} relative overflow-hidden px-3 py-2`}
+        style={{ backgroundColor: result.primaryColor.hex, color: heroTextColor }}
+      >
+        <div
+          aria-hidden="true"
+          className="absolute bottom-[-28px] right-[-24px] size-20 rounded-full blur-xl"
+          style={{ backgroundColor: heroLayer.background }}
+        />
+        <div className="relative flex items-center justify-between gap-2 text-[7px] font-semibold">
+          <span className="font-serif">Today Aura</span>
+          <span className="shrink-0" style={{ color: heroMutedColor }}>{result.date}</span>
+        </div>
+        <p className={`${tall ? "mt-4" : "mt-2.5"} text-[7px] font-semibold`} style={{ color: heroMutedColor }}>
+          今日气场
+        </p>
+        <h3 className={`${tall ? "mt-1 text-[17px]" : "mt-0.5 text-[15px]"} relative truncate font-semibold leading-none`}>
+          {result.title}
+        </h3>
+        <p className="relative mt-2 text-[7px] leading-[11px]" style={{ color: heroMutedColor }}>
+          {result.dailyQuote}
+        </p>
       </div>
-      <h3 className={`${tall ? "mt-5 text-[18px]" : "mt-4 text-[17px]"} text-center font-semibold leading-none`}>
-        {result.title}
-      </h3>
-      <div className={`${tall ? "mt-5" : "mt-4"} grid grid-cols-3 gap-2`}>
-        {[result.primaryColor, result.secondaryColor, result.accentColor].map((color) => (
-          <div key={color.name}>
-            <div className={`${tall ? "h-9" : "h-8"} rounded-[7px]`} style={{ backgroundColor: color.hex }} />
-            <p className="mt-1 truncate text-center text-[7px] font-semibold">{color.name}</p>
-          </div>
-        ))}
+      <div className={`${tall ? "p-2.5" : "p-2"} bg-[#FFFCF7]`}>
+        <div className="grid grid-cols-3 gap-1.5">
+          {colors.map(([label, color]) => (
+            <div className="rounded-[9px] bg-[#F8F3EA] p-1.5" key={color.name}>
+              <div className={`${tall ? "h-7" : "h-6"} rounded-[7px]`} style={{ backgroundColor: color.hex }} />
+              <p className="mt-1 text-[6px] leading-none text-[#9B9288]">{label}</p>
+              <p className="mt-0.5 truncate text-[7px] font-semibold leading-none">{color.name}</p>
+            </div>
+          ))}
+        </div>
+        <div className={`${tall ? "mt-2 p-2" : "mt-1.5 p-1.5"} rounded-[10px] bg-[#F8F3EA]`}>
+          <p className="text-[6px] leading-none text-[#9B9288]">穿搭关键词</p>
+          <p className="mt-1 truncate text-[7px] font-semibold leading-none">{result.shareCard.outfitKeywords.join(" · ")}</p>
+        </div>
       </div>
-      <div className={`${tall ? "mt-5 p-2" : "mt-4 p-2"} rounded-[10px] bg-[#F8F3EA]`}>
-        <p className="text-[7px] text-[#9B9288]">穿搭关键词</p>
-        <p className="mt-1 truncate text-[7px] font-semibold">{result.shareCard.outfitKeywords.join(" · ")}</p>
-      </div>
-      <p className={`${tall ? "mt-4 text-[10px] leading-4" : "mt-3 text-[9px] leading-[14px]"} font-semibold`}>
-        {result.dailyQuote}
-      </p>
     </div>
   );
 }
@@ -182,28 +226,37 @@ function PreviewCard({ ratio, result }: { ratio: ShareRatio; result: DailyAuraRe
 function ChannelIcon({ type }: { type: "wechat" | "moments" | "xhs" | "save" }) {
   if (type === "wechat") {
     return (
-      <span className="relative flex size-10 items-center justify-center rounded-full bg-[#40C85A] text-white">
-        <MessageCircle className="size-6" />
-        <span className="absolute right-2 top-3 size-1 rounded-full bg-white" />
+      <span className="relative flex size-11 items-center justify-center rounded-full bg-[#33C759]">
+        <span className="absolute left-[11px] top-[15px] h-[13px] w-[17px] rounded-[999px] bg-white" />
+        <span className="absolute right-[10px] top-[20px] h-[11px] w-[15px] rounded-[999px] bg-white/92" />
+        <span className="absolute left-[16px] top-[20px] size-1 rounded-full bg-[#33C759]" />
+        <span className="absolute left-[22px] top-[20px] size-1 rounded-full bg-[#33C759]" />
       </span>
     );
   }
   if (type === "moments") {
     return (
-      <span className="flex size-10 items-center justify-center rounded-full bg-[#44C565] text-white">
-        <Aperture className="size-7" />
+      <span className="relative flex size-11 items-center justify-center rounded-full bg-[#35C65A]">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <span
+            className="absolute h-[9px] w-[18px] rounded-full bg-white"
+            key={index}
+            style={{ transform: `rotate(${index * 60}deg) translateX(7px)`, transformOrigin: "50% 50%" }}
+          />
+        ))}
+        <span className="relative size-4 rounded-full bg-[#35C65A]" />
       </span>
     );
   }
   if (type === "xhs") {
     return (
-      <span className="flex size-10 items-center justify-center rounded-[14px] bg-[#F5283F] text-[11px] font-bold leading-none text-white">
+      <span className="flex size-11 items-center justify-center rounded-full bg-[#F5283F] text-[11px] font-bold leading-none text-white">
         小红书
       </span>
     );
   }
   return (
-    <span className="flex size-10 items-center justify-center rounded-full bg-[#292521] text-white">
+    <span className="flex size-11 items-center justify-center rounded-full bg-[#1F3648] text-white">
       <Download className="size-6" />
     </span>
   );
