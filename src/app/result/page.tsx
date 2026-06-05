@@ -145,7 +145,7 @@ export default function ResultPage() {
           <div className="grid grid-cols-3 divide-x divide-[#EDE5DB] border-b border-[#EDE5DB] bg-[#FFFCF7] p-3">
             <ColorSummary color={result.colors.primary} label="主色" />
             <ColorSummary color={result.colors.secondary} label="辅助" />
-            <ColorSummary color={result.colors.avoid} label="规避" />
+            <ColorSummary color={result.colors.avoid} label="点缀" />
           </div>
           <div className="p-5">
             <p className="text-xs font-medium text-[#B99A63]">颜色解释</p>
@@ -349,7 +349,7 @@ function SharePoster({ result }: { result: AuraResult }) {
       <div className="mt-4 grid grid-cols-3 gap-2">
         <ShareSwatch label="主色" color={result.colors.primary} />
         <ShareSwatch label="辅助" color={result.colors.secondary} />
-        <ShareSwatch label="规避" color={result.colors.avoid} />
+        <ShareSwatch label="点缀" color={result.colors.avoid} />
       </div>
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         {result.shareKeywords.slice(0, 5).map((keyword) => (
@@ -400,7 +400,7 @@ function ColorSummary({ color, label }: { color: AuraColor; label: string }) {
 
 function ColorCard({ color }: { color: AuraColor }) {
   const label =
-    color.role === "primary" ? "今日主色" : color.role === "secondary" ? "辅助色" : "规避色";
+    color.role === "primary" ? "今日主色" : color.role === "secondary" ? "辅助色" : "点缀色";
 
   return (
     <article className="overflow-hidden rounded-[1.8rem] border border-[#E2D8CB] bg-[#FFFCF7]">
