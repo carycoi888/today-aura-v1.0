@@ -3,6 +3,7 @@
 import { motion } from "motion/react";
 
 export type ColorDotItem = {
+  id?: string;
   label?: string;
   name: string;
   hex: string;
@@ -12,10 +13,12 @@ export function ColorDots({
   colors,
   size = "md",
   showNames = false,
+  onColorClick,
 }: {
   colors: ColorDotItem[];
   size?: "sm" | "md" | "lg";
   showNames?: boolean;
+  onColorClick?: (color: ColorDotItem) => void;
 }) {
   const sizeClass = {
     sm: "size-5",
@@ -37,10 +40,20 @@ export function ColorDots({
           {color.label ? (
             <p className="mb-3 text-[14px] font-semibold text-[#5E564F]">{color.label}</p>
           ) : null}
-          <span
-            className={`${sizeClass} block rounded-full border border-[#E2D8CB]`}
-            style={{ backgroundColor: color.hex }}
-          />
+          {onColorClick ? (
+            <button
+              aria-label={`查看${color.name}搭配建议`}
+              className={`${sizeClass} block cursor-pointer rounded-full border border-[#E2D8CB] shadow-[0_8px_18px_rgba(60,54,48,0.08)] transition hover:scale-[1.03]`}
+              onClick={() => onColorClick(color)}
+              style={{ backgroundColor: color.hex }}
+              type="button"
+            />
+          ) : (
+            <span
+              className={`${sizeClass} block rounded-full border border-[#E2D8CB]`}
+              style={{ backgroundColor: color.hex }}
+            />
+          )}
           {showNames ? (
             <p className="mt-3 text-[13px] font-semibold text-[#5E564F]">{color.name}</p>
           ) : null}

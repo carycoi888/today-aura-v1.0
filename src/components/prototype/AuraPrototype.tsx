@@ -10,11 +10,13 @@ import {
   RefreshCcw,
   Share2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ColorOutfitModal } from "@/components/aura/ColorOutfitModal";
 import { BottomNav, type PrototypeNavKey } from "@/components/prototype/BottomNav";
 import { HomeLuxuryScreen } from "@/components/prototype/HomeLuxuryScreen";
 import { ProfileLuxuryScreen } from "@/components/prototype/ProfileLuxuryScreen";
 import { SharePreviewModal } from "@/components/prototype/SharePreviewModal";
+import { getColorRecommendationsFromResult } from "@/lib/aura/colorRecommendations";
 import { readableMutedTextColor, readableSoftLayer, readableTextColor } from "@/lib/aura/colorContrast";
 import {
   defaultProfile,
@@ -445,6 +447,9 @@ function OverviewScreen({
 }) {
   const [activeAdvice, setActiveAdvice] = useState<"outfit" | "makeup">("outfit");
   const [shareOpen, setShareOpen] = useState(false);
+  const [activeColorId, setActiveColorId] = useState<string | null>(null);
+  const colorRecommendations = useMemo(() => getColorRecommendationsFromResult(result), [result]);
+  const activeColor = colorRecommendations.find((color) => color.id === activeColorId) ?? null;
   const heroTextColor = readableTextColor(result.primaryColor.hex);
   const heroMutedColor = readableMutedTextColor(result.primaryColor.hex);
   const heroLayer = readableSoftLayer(result.primaryColor.hex);
@@ -490,9 +495,15 @@ function OverviewScreen({
 
         <motion.div className="space-y-4 p-4" variants={riseVariant}>
           <div className="grid grid-cols-3 gap-3">
-            <MiniColor color={result.primaryColor.hex} label="主色" name={result.primaryColor.name} />
-            <MiniColor color={result.secondaryColor.hex} label="辅助" name={result.secondaryColor.name} />
-            <MiniColor color={result.accentColor.hex} label="点缀" name={result.accentColor.name} />
+            {colorRecommendations.map((color) => (
+              <MiniColor
+                color={color.hex}
+                key={color.id}
+                label={color.role === "primary" ? "主色" : color.role === "secondary" ? "辅助" : "点缀"}
+                name={color.name}
+                onClick={() => setActiveColorId(color.id)}
+              />
+            ))}
           </div>
           <div className="grid grid-cols-2 gap-3">
             <PrimaryButton onClick={() => setShareOpen(true)}>
@@ -562,6 +573,11 @@ function OverviewScreen({
             }}
             result={result}
           />
+        ) : null}
+      </AnimatePresence>
+      <AnimatePresence>
+        {activeColor ? (
+          <ColorOutfitModal color={activeColor} onClose={() => setActiveColorId(null)} />
         ) : null}
       </AnimatePresence>
     </div>
@@ -956,8 +972,10 @@ function Toast({ message }: { message: string }) {
   return <motion.div animate={{ opacity: 1, y: 0 }} className="absolute left-8 right-8 top-[calc(env(safe-area-inset-top)+18px)] z-20 rounded-[20px] bg-[#FFFCF7] p-4 text-center shadow-[0_18px_48px_rgba(60,54,48,0.2)]" exit={{ opacity: 0, y: -8 }} initial={{ opacity: 0, y: 8 }}><Check className="mx-auto mb-2 size-6 text-[#B99A63]" /><p className="text-sm font-semibold">{message}</p></motion.div>;
 }
 
-function MiniColor({ label, name, color }: { label: string; name: string; color: string }) {
-  return <div className="rounded-[20px] bg-[#F8F3EA] p-3"><div className="h-16 rounded-[14px]" style={{ backgroundColor: color }} /><p className="mt-2 text-xs text-[#9B9288]">{label}</p><p className="font-semibold">{name}</p></div>;
+function MiniColor({ label, name, color, onClick }: { label: string; name: string; color: string; onClick?: () => void }) {
+  const content = <><div className="h-16 rounded-[14px]" style={{ backgroundColor: color }} /><p className="mt-2 text-xs text-[#9B9288]">{label}</p><p className="font-semibold">{name}</p></>;
+  if (!onClick) return <div className="rounded-[20px] bg-[#F8F3EA] p-3">{content}</div>;
+  return <button aria-label={`查看${name}搭配建议`} className="rounded-[20px] bg-[#F8F3EA] p-3 text-left transition hover:-translate-y-0.5" onClick={onClick} type="button">{content}</button>;
 }
 
 function AdvicePanel({ title, children }: { title: string; children: React.ReactNode }) {

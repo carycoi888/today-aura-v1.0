@@ -1,4 +1,9 @@
 import { colorLibrary, defaultProfile } from "@/lib/aura/options";
+import {
+  getDailyColorSet,
+  resolveToneFromDesiredAura,
+  toAuraColor as toRecommendedAuraColor,
+} from "@/lib/aura/colorRecommendations";
 import type {
   AuraColor,
   DailyAuraInput,
@@ -35,15 +40,25 @@ export function generateDailyAura(
     ),
     input,
   );
+  const date = formatDate(new Date());
+  const createdAt = new Date().toISOString();
+  const colorSet = getDailyColorSet(createdAt, resolveToneFromDesiredAura(input.desiredAura));
   const title = buildTitle(input.desiredAura || "清冷", input, isRegenerated);
-  const primaryColor = toAuraColor(primaryMeta, "primary", buildPrimaryReason(primaryMeta.name, input, safeProfile));
-  const secondaryColor = toAuraColor(secondaryMeta, "secondary", `${secondaryMeta.name}用来衔接${primaryMeta.name}，放在内搭、鞋包或配饰上，降低搭配出错率。`);
-  const accentColor = toAuraColor(accentMeta, "accent", buildAccentReason(accentMeta.name, input));
+  const primaryColor = mergeColorReason(
+    toRecommendedAuraColor(colorSet.primary, "primary"),
+    buildPrimaryReason(primaryMeta.name, input, safeProfile),
+  );
+  const secondaryColor = mergeColorReason(
+    toRecommendedAuraColor(colorSet.secondary, "secondary"),
+    `${secondaryMeta.name}用来衔接${primaryMeta.name}，放在内搭、鞋包或配饰上，降低搭配出错率。`,
+  );
+  const accentColor = mergeColorReason(
+    toRecommendedAuraColor(colorSet.accent, "accent"),
+    buildAccentReason(accentMeta.name, input),
+  );
   const outfitAdvice = buildOutfitAdvice(input, primaryColor.name, secondaryColor.name);
   const makeupAdvice = buildMakeupAdvice(input, primaryColor.name, secondaryColor.name);
   const dailyQuote = buildQuote(input.desiredAura || "清冷", input.energy || "中", isRegenerated);
-  const date = formatDate(new Date());
-  const createdAt = new Date().toISOString();
 
   return {
     id: `${createdAt}-${hashInput(input)}-${isRegenerated ? "r1" : "r0"}`,
@@ -69,8 +84,16 @@ export function generateDailyAura(
       ],
       quote: dailyQuote,
     },
+    colorSet,
     isRegenerated,
     createdAt,
+  };
+}
+
+function mergeColorReason(color: AuraColor, reason: string): AuraColor {
+  return {
+    ...color,
+    reason: `${color.reason}${reason ? ` ${reason}` : ""}`,
   };
 }
 
@@ -124,14 +147,6 @@ function pickAccentColor(colors: typeof colorLibrary, input: DailyAuraInput) {
     return { color, score };
   });
   return scored.sort((a, b) => b.score - a.score)[0]?.color ?? colors[0];
-}
-
-function toAuraColor(
-  color: (typeof colorLibrary)[number],
-  role: AuraColor["role"],
-  reason: string,
-): AuraColor {
-  return { name: color.name, hex: color.hex, role, reason, usage: color.usage };
 }
 
 function buildTitle(aura: DesiredAura | "清冷", input: DailyAuraInput, isRegenerated: boolean) {

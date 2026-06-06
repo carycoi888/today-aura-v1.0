@@ -1,7 +1,10 @@
 "use client";
 
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
+import { useMemo, useState } from "react";
+import { ColorOutfitModal } from "@/components/aura/ColorOutfitModal";
+import { getColorRecommendationsFromResult } from "@/lib/aura/colorRecommendations";
 import type { DailyAuraResult, UserProfile } from "@/lib/aura/types";
 import { AuraRecordRow } from "@/components/prototype/AuraRecordRow";
 import { ColorDots } from "@/components/prototype/ColorDots";
@@ -34,11 +37,15 @@ export function HomeLuxuryScreen({
   onOpenRecent: () => void;
   onOpenProfile: () => void;
 }) {
-  const colorItems = [
-    { label: "主色", name: result.primaryColor.name, hex: result.primaryColor.hex },
-    { label: "辅助色", name: result.secondaryColor.name, hex: result.secondaryColor.hex },
-    { label: "点缀色", name: result.accentColor.name, hex: result.accentColor.hex },
-  ];
+  const recommendations = useMemo(() => getColorRecommendationsFromResult(result), [result]);
+  const [activeColorId, setActiveColorId] = useState<string | null>(null);
+  const activeColor = recommendations.find((color) => color.id === activeColorId) ?? null;
+  const colorItems = recommendations.map((color) => ({
+    label: color.role === "primary" ? "主色" : color.role === "secondary" ? "辅助色" : "点缀色",
+    name: color.name,
+    hex: color.hex,
+    id: color.id,
+  }));
 
   return (
     <motion.div
@@ -100,7 +107,12 @@ export function HomeLuxuryScreen({
       </section>
 
       <section className="mt-11">
-        <ColorDots colors={colorItems} showNames size="lg" />
+        <ColorDots
+          colors={colorItems}
+          onColorClick={(color) => setActiveColorId(color.id ?? null)}
+          showNames
+          size="lg"
+        />
       </section>
 
       <motion.button
@@ -127,6 +139,12 @@ export function HomeLuxuryScreen({
           />
         </motion.div>
       </section>
+
+      <AnimatePresence>
+        {activeColor ? (
+          <ColorOutfitModal color={activeColor} onClose={() => setActiveColorId(null)} />
+        ) : null}
+      </AnimatePresence>
     </motion.div>
   );
 }

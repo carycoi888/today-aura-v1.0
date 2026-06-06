@@ -31,6 +31,51 @@ export type UserProfile = {
   constraints: string[];
 };
 
+export type AuraTone =
+  | "清冷知性"
+  | "温柔知性"
+  | "松弛自然"
+  | "气质优雅"
+  | "活力明亮"
+  | "沉稳内敛";
+export type ColorRole = "primary" | "secondary" | "accent" | "avoid";
+
+export type OutfitItem = {
+  id: string;
+  category: "上装" | "下装" | "外套" | "鞋包" | "配饰" | "小物";
+  label: string;
+  colorName: string;
+  imageSrc?: string;
+  description?: string;
+};
+
+export type OutfitMapping = {
+  title: string;
+  subtitle: string;
+  items: OutfitItem[];
+  summary: string;
+};
+
+export type AuraColorRecommendation = {
+  id: string;
+  role: ColorRole;
+  name: string;
+  hex: string;
+  shortLabel: string;
+  auraReason: string;
+  outfitMapping: OutfitMapping;
+};
+
+export type DailyAuraColorSet = {
+  id: string;
+  tone: AuraTone;
+  date: string;
+  title: string;
+  primary: AuraColorRecommendation;
+  secondary: AuraColorRecommendation;
+  accent: AuraColorRecommendation;
+};
+
 export type DailyAuraInput = {
   scene: AuraScene | "";
   weather: AuraWeather | "";
@@ -46,6 +91,10 @@ export type AuraColor = {
   role: "primary" | "secondary" | "accent";
   reason: string;
   usage: string;
+  shortLabel?: string;
+  auraReason?: string;
+  recommendationId?: string;
+  outfitMapping?: OutfitMapping;
 };
 
 export type OutfitAdvice = {
@@ -92,6 +141,7 @@ export type DailyAuraResult = {
   makeupAdvice: MakeupAdvice;
   dailyQuote: string;
   shareCard: ShareCardData;
+  colorSet?: DailyAuraColorSet;
   isRegenerated: boolean;
   createdAt: string;
 };

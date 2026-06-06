@@ -1,4 +1,5 @@
 import { defaultProfile } from "@/lib/aura/options";
+import { getDailyColorSet, resolveToneFromDesiredAura, toAuraColor } from "@/lib/aura/colorRecommendations";
 import type { DailyAuraResult, UserProfile } from "@/lib/aura/types";
 
 export const PROFILE_KEY = "today-aura-profile";
@@ -56,7 +57,6 @@ function normalizeResult(result: DailyAuraResult) {
     [key: string]: DailyAuraResult["accentColor"] | unknown;
   };
   const legacyColor = legacy[`avo${"id"}Color`] as DailyAuraResult["accentColor"] | undefined;
-  const legacyShareColor = legacy.shareCard?.colors?.[`avo${"id"}`] as DailyAuraResult["accentColor"] | undefined;
   const neutralAccent: DailyAuraResult["accentColor"] = {
     name: "雾灰",
     hex: "#A8A198",
@@ -66,17 +66,28 @@ function normalizeResult(result: DailyAuraResult) {
   };
   const accentColor = result.accentColor ?? (legacyColor ? neutralAccent : undefined);
 
-  if (!accentColor) return result;
+  const colorSet = getDailyColorSet(
+    result.createdAt || new Date(),
+    result.colorSet?.tone ?? resolveToneFromDesiredAura(result.input?.desiredAura),
+  );
+  const primaryColor = toAuraColor(colorSet.primary, "primary");
+  const secondaryColor = toAuraColor(colorSet.secondary, "secondary");
+  const normalizedAccentColor = toAuraColor(colorSet.accent, "accent");
+
+  if (!accentColor) return { ...result, colorSet };
 
   return {
     ...result,
-    accentColor,
+    primaryColor,
+    secondaryColor,
+    accentColor: normalizedAccentColor,
+    colorSet,
     shareCard: {
       ...result.shareCard,
       colors: {
-        primary: result.shareCard.colors.primary,
-        secondary: result.shareCard.colors.secondary,
-        accent: result.shareCard.colors.accent ?? (legacyShareColor ? neutralAccent : undefined) ?? accentColor,
+        primary: primaryColor,
+        secondary: secondaryColor,
+        accent: normalizedAccentColor,
       },
     },
   };
