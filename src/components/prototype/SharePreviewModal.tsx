@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "motion/react";
-import { Check, Download, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { useState } from "react";
 import type { AuraColor, DailyAuraResult } from "@/lib/aura/types";
 import { readableMutedTextColor, readableSoftLayer, readableTextColor } from "@/lib/aura/colorContrast";
@@ -11,12 +11,12 @@ type ShareTarget = "微信好友" | "朋友圈" | "小红书" | "保存图片";
 
 const channels: Array<{
   label: ShareTarget;
-  icon: "wechat" | "moments" | "xhs" | "save";
+  iconSrc: string;
 }> = [
-  { label: "微信好友", icon: "wechat" },
-  { label: "朋友圈", icon: "moments" },
-  { label: "小红书", icon: "xhs" },
-  { label: "保存图片", icon: "save" },
+  { label: "小红书", iconSrc: "/images/share-icons/xiaohongshu.png" },
+  { label: "微信好友", iconSrc: "/images/share-icons/weixin.png" },
+  { label: "朋友圈", iconSrc: "/images/share-icons/moments.png" },
+  { label: "保存图片", iconSrc: "/images/share-icons/save.png" },
 ];
 
 export function SharePreviewModal({
@@ -90,7 +90,7 @@ export function SharePreviewModal({
                 type="button"
               >
                 <span className="flex size-[58px] items-center justify-center rounded-full bg-white shadow-[0_8px_24px_rgba(60,54,48,0.08)]">
-                  <ChannelIcon type={channel.icon} />
+                  <ChannelIcon src={channel.iconSrc} />
                 </span>
                 <span className="w-full truncate">{channel.label}</span>
               </button>
@@ -223,41 +223,9 @@ function PreviewCard({ ratio, result }: { ratio: ShareRatio; result: DailyAuraRe
   );
 }
 
-function ChannelIcon({ type }: { type: "wechat" | "moments" | "xhs" | "save" }) {
-  if (type === "wechat") {
-    return (
-      <span className="relative flex size-11 items-center justify-center rounded-full bg-[#33C759]">
-        <span className="absolute left-[11px] top-[15px] h-[13px] w-[17px] rounded-[999px] bg-white" />
-        <span className="absolute right-[10px] top-[20px] h-[11px] w-[15px] rounded-[999px] bg-white/92" />
-        <span className="absolute left-[16px] top-[20px] size-1 rounded-full bg-[#33C759]" />
-        <span className="absolute left-[22px] top-[20px] size-1 rounded-full bg-[#33C759]" />
-      </span>
-    );
-  }
-  if (type === "moments") {
-    return (
-      <span className="relative flex size-11 items-center justify-center rounded-full bg-[#35C65A]">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <span
-            className="absolute h-[9px] w-[18px] rounded-full bg-white"
-            key={index}
-            style={{ transform: `rotate(${index * 60}deg) translateX(7px)`, transformOrigin: "50% 50%" }}
-          />
-        ))}
-        <span className="relative size-4 rounded-full bg-[#35C65A]" />
-      </span>
-    );
-  }
-  if (type === "xhs") {
-    return (
-      <span className="flex size-11 items-center justify-center rounded-full bg-[#F5283F] text-[11px] font-bold leading-none text-white">
-        小红书
-      </span>
-    );
-  }
+function ChannelIcon({ src }: { src: string }) {
   return (
-    <span className="flex size-11 items-center justify-center rounded-full bg-[#1F3648] text-white">
-      <Download className="size-6" />
-    </span>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img alt="" aria-hidden="true" className="size-11 rounded-full object-contain" src={src} />
   );
 }
