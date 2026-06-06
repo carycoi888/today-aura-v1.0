@@ -61,7 +61,11 @@ type Screen =
   | "shareOptions"
   | "mine"
   | "profile"
-  | "styleEdit";
+  | "styleEdit"
+  | "commonColorsEdit"
+  | "dislikedColorsEdit"
+  | "desiredAurasEdit"
+  | "constraintsEdit";
 
 const defaultInput: DailyAuraInput = {
   scene: "通勤",
@@ -79,6 +83,13 @@ const blankInput: DailyAuraInput = {
   energy: "",
   desiredAura: "",
   specialNeed: "",
+};
+
+const profileEditOptions = {
+  commonColors: ["灰蓝", "奶油白", "燕麦色", "浅卡其", "炭褐", "玫瑰雾", "鼠尾草绿", "酒红"],
+  dislikedColors: ["荧光粉", "高饱和橙", "亮紫", "亮橙", "大面积黑色", "冷白", "玫红"],
+  desiredAuras: ["干净", "稳定", "松弛", "有边界", "温柔", "清醒", "明亮", "低调", "被看见"],
+  constraints: ["低维护", "需要走路", "不穿高跟", "需要保暖", "不能太休闲", "适合通勤", "适合拍照"],
 };
 
 export function AuraPrototype() {
@@ -115,9 +126,10 @@ export function AuraPrototype() {
     setInput((current) => ({ ...current, [field]: value }));
   }
 
-  function startGenerate() {
-    const next = generateDailyAura(input, profile, false);
+  function startGenerate(nextInput = input) {
+    const next = generateDailyAura(nextInput, profile, false);
     saveResult(next);
+    setInput(nextInput);
     setResult(next);
     setHistory(readResults());
     setRegeneratedUsed(false);
@@ -168,9 +180,12 @@ export function AuraPrototype() {
             title="今天主要去哪？"
             options={sceneOptions}
             value={input.scene}
+            backDisabled
             onBack={() => setScreen("home")}
-            onNext={() => setScreen("weather")}
-            onSelect={(value) => updateInput("scene", value as AuraScene)}
+            onSelect={(value) => {
+              updateInput("scene", value as AuraScene);
+              setScreen("weather");
+            }}
             step="1 / 5"
           />
         );
@@ -181,8 +196,10 @@ export function AuraPrototype() {
             options={weatherOptions.map((item) => (item === "晴" ? "晴天" : item === "阴" ? "阴天" : item === "雨" ? "雨天" : item))}
             value={displayWeather(input.weather)}
             onBack={() => setScreen("scene")}
-            onNext={() => setScreen("mood")}
-            onSelect={(value) => updateInput("weather", parseWeather(value))}
+            onSelect={(value) => {
+              updateInput("weather", parseWeather(value));
+              setScreen("mood");
+            }}
             step="2 / 5"
           />
         );
@@ -194,8 +211,10 @@ export function AuraPrototype() {
             value={input.mood}
             hint={input.mood ? moodHints[input.mood as AuraMood] : "选择当下真实状态，建议会相应降低或增加复杂度。"}
             onBack={() => setScreen("weather")}
-            onNext={() => setScreen("energy")}
-            onSelect={(value) => updateInput("mood", value as AuraMood)}
+            onSelect={(value) => {
+              updateInput("mood", value as AuraMood);
+              setScreen("energy");
+            }}
             step="3 / 5"
           />
         );
@@ -206,8 +225,10 @@ export function AuraPrototype() {
             options={energyOptions}
             value={input.energy}
             onBack={() => setScreen("mood")}
-            onNext={() => setScreen("aura")}
-            onSelect={(value) => updateInput("energy", value as AuraEnergy)}
+            onSelect={(value) => {
+              updateInput("energy", value as AuraEnergy);
+              setScreen("aura");
+            }}
             step="4 / 5"
           />
         );
@@ -216,7 +237,7 @@ export function AuraPrototype() {
           <AuraChoiceScreen
             input={input}
             onBack={() => setScreen("energy")}
-            onGenerate={startGenerate}
+            onGenerate={() => startGenerate()}
             onSelect={(value) => updateInput("desiredAura", value)}
             onSpecialNeed={(value) => updateInput("specialNeed", value)}
           />
@@ -270,11 +291,22 @@ export function AuraPrototype() {
           />
         );
       case "profile":
-        return <ProfileEntryScreen profile={profile} onDone={() => setScreen("home")} onEdit={() => setScreen("styleEdit")} onProfile={setProfile} onSave={() => saveProfileAndReturn(profile)} />;
+        return (
+          <ProfileEntryScreen
+            profile={profile}
+            onDone={() => setScreen("home")}
+            onEdit={(target) => setScreen(target)}
+            onProfile={setProfile}
+            onSave={() => saveProfileAndReturn(profile)}
+          />
+        );
       case "styleEdit":
         return (
-          <StyleEditScreen
+          <ProfileMultiSelectScreen
+            max={3}
+            options={profileStyleOptions}
             selected={styleDraft}
+            title="常用风格"
             onBack={() => setScreen("profile")}
             onSave={() => {
               const next = { ...profile, commonStyles: styleDraft };
@@ -294,6 +326,54 @@ export function AuraPrototype() {
             }}
           />
         );
+      case "commonColorsEdit":
+        return (
+          <ProfileMultiSelectScreen
+            max={4}
+            options={profileEditOptions.commonColors}
+            selected={profile.commonColors}
+            title="常穿颜色"
+            onBack={() => setScreen("profile")}
+            onSave={() => saveProfileAndReturn(profile)}
+            onToggle={(item) => toggleProfileList("commonColors", item, 4)}
+          />
+        );
+      case "dislikedColorsEdit":
+        return (
+          <ProfileMultiSelectScreen
+            max={3}
+            options={profileEditOptions.dislikedColors}
+            selected={profile.dislikedColors}
+            title="不喜欢颜色"
+            onBack={() => setScreen("profile")}
+            onSave={() => saveProfileAndReturn(profile)}
+            onToggle={(item) => toggleProfileList("dislikedColors", item, 3)}
+          />
+        );
+      case "desiredAurasEdit":
+        return (
+          <ProfileMultiSelectScreen
+            max={4}
+            options={profileEditOptions.desiredAuras}
+            selected={profile.desiredAuras}
+            title="希望呈现的气质"
+            onBack={() => setScreen("profile")}
+            onSave={() => saveProfileAndReturn(profile)}
+            onToggle={(item) => toggleProfileList("desiredAuras", item, 4)}
+          />
+        );
+      case "constraintsEdit":
+        return (
+          <ProfileMultiSelectScreen
+            max={4}
+            options={profileEditOptions.constraints}
+            selected={profile.constraints}
+            title="穿搭限制"
+            onBack={() => setScreen("profile")}
+            onSave={() => saveProfileAndReturn(profile)}
+            onToggle={(item) => toggleProfileList("constraints", item, 4)}
+          />
+        );
       default:
         return (
           <HomeLuxuryScreen
@@ -310,6 +390,23 @@ export function AuraPrototype() {
         );
     }
   })();
+
+  function toggleProfileList(
+    field: keyof Pick<UserProfile, "commonColors" | "dislikedColors" | "desiredAuras" | "constraints">,
+    item: string,
+    max: number,
+  ) {
+    setProfile((current) => {
+      const selected = current[field];
+      if (selected.includes(item)) return { ...current, [field]: selected.filter((value) => value !== item) };
+      if (selected.length >= max) {
+        setToast(`最多选择 ${max} 项`);
+        window.setTimeout(() => setToast(""), 1200);
+        return current;
+      }
+      return { ...current, [field]: [...selected, item] };
+    });
+  }
 
   return (
     <MotionConfig reducedMotion="user">
@@ -345,8 +442,8 @@ function ChoiceScreen({
   value,
   hint,
   step,
+  backDisabled,
   onSelect,
-  onNext,
   onBack,
 }: {
   title: string;
@@ -354,8 +451,8 @@ function ChoiceScreen({
   value: string;
   hint?: string;
   step: string;
+  backDisabled?: boolean;
   onSelect: (value: string) => void;
-  onNext: () => void;
   onBack: () => void;
 }) {
   return (
@@ -368,7 +465,7 @@ function ChoiceScreen({
       {hint ? <p className="mt-6 rounded-[18px] bg-[#EFE7DC] p-4 text-sm leading-6 text-[#7A6E62]">{hint}</p> : null}
       <div className="mt-auto pt-10">
         <StepDots step={step} />
-        <PrimaryButton disabled={!value} onClick={onNext}>下一步</PrimaryButton>
+        <SoftButton disabled={backDisabled} onClick={onBack}>上一步</SoftButton>
       </div>
     </div>
   );
@@ -863,7 +960,19 @@ function ShareOptionsScreen({ result, onCancel, onPick }: { result: DailyAuraRes
   );
 }
 
-function ProfileEntryScreen({ profile, onProfile, onEdit, onSave, onDone }: { profile: UserProfile; onProfile: (profile: UserProfile) => void; onEdit: () => void; onSave: () => void; onDone: () => void }) {
+function ProfileEntryScreen({
+  profile,
+  onProfile,
+  onEdit,
+  onSave,
+  onDone,
+}: {
+  profile: UserProfile;
+  onProfile: (profile: UserProfile) => void;
+  onEdit: (screen: Extract<Screen, "styleEdit" | "commonColorsEdit" | "dislikedColorsEdit" | "desiredAurasEdit" | "constraintsEdit">) => void;
+  onSave: () => void;
+  onDone: () => void;
+}) {
   return (
     <div className="space-y-4">
       <h1 className="text-[26px] font-semibold">我的档案</h1>
@@ -871,11 +980,11 @@ function ProfileEntryScreen({ profile, onProfile, onEdit, onSave, onDone }: { pr
         <label className="text-sm text-[#9B9288]">昵称</label>
         <input className="mt-2 h-12 w-full rounded-full border border-[#E2D8CB] bg-[#F8F3EA] px-4 outline-none" value={profile.nickname} onChange={(event) => onProfile({ ...profile, nickname: event.target.value })} />
       </section>
-      <ProfileRow label="常用风格" value={profile.commonStyles.join("、")} onClick={onEdit} />
-      <ProfileRow label="常穿颜色" value={profile.commonColors.join("、")} onClick={() => onProfile({ ...profile, commonColors: rotate(profile.commonColors, ["灰蓝", "奶油白", "燕麦色", "炭褐"]) })} />
-      <ProfileRow label="不喜欢颜色" value={profile.dislikedColors.join("、")} onClick={() => onProfile({ ...profile, dislikedColors: rotate(profile.dislikedColors, ["荧光粉", "高饱和橙", "亮紫"]) })} />
-      <ProfileRow label="希望呈现的气质" value={profile.desiredAuras.join("、")} onClick={() => onProfile({ ...profile, desiredAuras: rotate(profile.desiredAuras, ["干净", "稳定", "松弛"]) })} />
-      <ProfileRow label="穿搭限制" value={profile.constraints.join("、")} onClick={() => onProfile({ ...profile, constraints: rotate(profile.constraints, ["低维护", "需要走路", "不穿高跟"]) })} />
+      <ProfileRow label="常用风格" value={profile.commonStyles.join("、")} onClick={() => onEdit("styleEdit")} />
+      <ProfileRow label="常穿颜色" value={profile.commonColors.join("、")} onClick={() => onEdit("commonColorsEdit")} />
+      <ProfileRow label="不喜欢颜色" value={profile.dislikedColors.join("、")} onClick={() => onEdit("dislikedColorsEdit")} />
+      <ProfileRow label="希望呈现的气质" value={profile.desiredAuras.join("、")} onClick={() => onEdit("desiredAurasEdit")} />
+      <ProfileRow label="穿搭限制" value={profile.constraints.join("、")} onClick={() => onEdit("constraintsEdit")} />
       <div className="grid grid-cols-2 gap-3">
         <SoftButton onClick={onDone}>完成</SoftButton>
         <PrimaryButton onClick={onSave}>保存档案</PrimaryButton>
@@ -884,16 +993,32 @@ function ProfileEntryScreen({ profile, onProfile, onEdit, onSave, onDone }: { pr
   );
 }
 
-function StyleEditScreen({ selected, onToggle, onSave, onBack }: { selected: string[]; onToggle: (item: string) => void; onSave: () => void; onBack: () => void }) {
+function ProfileMultiSelectScreen({
+  title,
+  selected,
+  options,
+  max,
+  onToggle,
+  onSave,
+  onBack,
+}: {
+  title: string;
+  selected: string[];
+  options: string[];
+  max: number;
+  onToggle: (item: string) => void;
+  onSave: () => void;
+  onBack: () => void;
+}) {
   return (
     <div className="space-y-5">
       <BackButton onClick={onBack} />
       <div>
-        <h1 className="text-[26px] font-semibold">常用风格</h1>
-        <p className="mt-2 text-sm text-[#7A6E62]">可多选 3 项，已选 {selected.length}/3。</p>
+        <h1 className="text-[26px] font-semibold">{title}</h1>
+        <p className="mt-2 text-sm text-[#7A6E62]">可多选 {max} 项，已选 {selected.length}/{max}。</p>
       </div>
       <div className="grid grid-cols-2 gap-3">
-        {profileStyleOptions.map((item) => <ChoiceChip key={item} selected={selected.includes(item)} onClick={() => onToggle(item)}>{item}</ChoiceChip>)}
+        {options.map((item) => <ChoiceChip key={item} selected={selected.includes(item)} onClick={() => onToggle(item)}>{item}</ChoiceChip>)}
       </div>
       <PrimaryButton onClick={onSave}>保存</PrimaryButton>
     </div>
@@ -1022,9 +1147,4 @@ function parseWeather(value: string): AuraWeather {
   if (value === "阴天") return "阴";
   if (value === "雨天") return "雨";
   return value as AuraWeather;
-}
-
-function rotate(current: string[], options: string[]) {
-  const first = options.find((item) => !current.includes(item));
-  return first ? [...current.slice(1), first] : options.slice(0, 3);
 }
