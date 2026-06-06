@@ -139,14 +139,7 @@ function OutfitTile({
         {item.imageSrc?.includes("奶油白裤子") ? (
           <span className="absolute inset-x-1 bottom-10 top-5 rounded-full bg-[#D8C8A8]/28 blur-[8px]" />
         ) : null}
-        {!loaded ? (
-          <motion.span
-            animate={{ opacity: [0.42, 0.76, 0.42], x: ["-18%", "18%", "-18%"] }}
-            aria-hidden="true"
-            className="absolute inset-3 rounded-[14px] bg-gradient-to-r from-[#EDE3D5]/60 via-[#FFF8EE]/90 to-[#E1D3C1]/60"
-            transition={{ duration: 1.05, ease: "easeInOut", repeat: Infinity }}
-          />
-        ) : null}
+        {!loaded ? <OutfitImageLoading colorHex={colorHex} /> : null}
         {item.imageSrc ? (
           <motion.img
             animate={{ opacity: loaded ? 1 : 0, scale: loaded ? 1 : 0.985 }}
@@ -177,6 +170,35 @@ function OutfitTile({
           {item.category}
         </p>
       </div>
+    </motion.div>
+  );
+}
+
+function OutfitImageLoading({ colorHex }: { colorHex: string }) {
+  return (
+    <motion.div
+      animate={{ opacity: [0.86, 1, 0.9] }}
+      aria-hidden="true"
+      className="absolute inset-0 overflow-hidden rounded-[16px]"
+      transition={{ duration: 1.35, ease: "easeInOut", repeat: Infinity }}
+    >
+      <span className="absolute inset-0 bg-[linear-gradient(180deg,#F9F4EC_0%,#EEE3D5_100%)]" />
+      <span
+        className="absolute left-1/2 top-7 h-16 w-12 -translate-x-1/2 rounded-full blur-[12px]"
+        style={{ backgroundColor: `${colorHex}42` }}
+      />
+      <span className="absolute left-1/2 top-[58px] h-16 w-9 -translate-x-1/2 rounded-[999px_999px_16px_16px] border border-[#D9CCBB]/70 bg-[#FFF9F0]/70 shadow-[0_14px_24px_rgba(60,54,48,0.08)]" />
+      <span className="absolute bottom-[44px] left-1/2 h-3 w-12 -translate-x-1/2 rounded-full bg-[#D5C4AD]/35 blur-[2px]" />
+      <motion.span
+        animate={{ x: ["-130%", "130%"] }}
+        className="absolute inset-y-3 -left-12 w-12 rotate-12 bg-gradient-to-r from-transparent via-white/75 to-transparent blur-[1px]"
+        transition={{ duration: 1.18, ease: "easeInOut", repeat: Infinity, repeatDelay: 0.12 }}
+      />
+      <motion.span
+        animate={{ opacity: [0.2, 0.72, 0.2], scale: [0.94, 1.04, 0.94] }}
+        className="absolute right-4 top-5 size-1.5 rounded-full bg-[#C2A46A]"
+        transition={{ duration: 1.28, ease: "easeInOut", repeat: Infinity }}
+      />
     </motion.div>
   );
 }
