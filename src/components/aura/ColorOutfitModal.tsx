@@ -2,8 +2,29 @@
 
 import { Sparkles } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { AuraColorRecommendation } from "@/lib/aura/types";
+
+const outfitSourcePath = "/reference/today-aura-outfits/";
+const modalOutfitSourcePath = "/reference/today-aura-outfits-modal/";
+const modalPanelVariants = {
+  hidden: { opacity: 0, scale: 0.985, y: 16 },
+  show: { opacity: 1, scale: 1, y: 0 },
+  exit: { opacity: 0, scale: 0.99, y: 12 },
+};
+const itemGridVariants = {
+  hidden: {},
+  show: { transition: { delayChildren: 0.08, staggerChildren: 0.055 } },
+};
+const outfitTileVariants = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0 },
+};
+
+function getModalImageSrc(imageSrc: string) {
+  if (!imageSrc.startsWith(outfitSourcePath)) return imageSrc;
+  return imageSrc.replace(outfitSourcePath, modalOutfitSourcePath);
+}
 
 export function ColorOutfitModal({
   color,
@@ -34,14 +55,15 @@ export function ColorOutfitModal({
       transition={{ duration: 0.18, ease: "easeOut" }}
     >
       <motion.section
-        animate={{ opacity: 1, y: 0 }}
+        animate="show"
         aria-modal="true"
         className="relative w-full max-w-[352px] rounded-[28px] border border-[#E2D8CB] bg-[#FFFCF7] px-6 pb-6 pt-7 shadow-[0_28px_80px_rgba(41,37,33,0.24)]"
-        exit={{ opacity: 0, y: 12 }}
-        initial={{ opacity: 0, y: 12 }}
+        exit="exit"
+        initial="hidden"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
-        transition={{ duration: 0.2, ease: "easeOut" }}
+        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+        variants={modalPanelVariants}
       >
         <div>
           <div className="flex items-center gap-3">
@@ -63,11 +85,16 @@ export function ColorOutfitModal({
         </div>
 
         <div className="mt-6">
-          <div className="grid grid-cols-4 gap-2">
+          <motion.div
+            className="grid grid-cols-4 gap-2"
+            initial="hidden"
+            animate="show"
+            variants={itemGridVariants}
+          >
             {visualItems.map((item) => (
               <OutfitTile colorHex={color.hex} item={item} key={item.id} />
             ))}
-          </div>
+          </motion.div>
         </div>
 
         <div className="mt-7 px-1 text-sm leading-7 text-[#5E564F]">
@@ -97,22 +124,48 @@ function OutfitTile({
   item: AuraColorRecommendation["outfitMapping"]["items"][number];
   colorHex: string;
 }) {
+  const [loaded, setLoaded] = useState(!item.imageSrc);
   const imageTone = item.imageSrc?.includes("奶油白裤子")
     ? "contrast-150 brightness-95 saturate-125 drop-shadow-[0_10px_14px_rgba(60,54,48,0.22)]"
     : "drop-shadow-[0_10px_14px_rgba(60,54,48,0.12)]";
 
   return (
-    <div className="min-w-0">
+    <motion.div
+      className="min-w-0"
+      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      variants={outfitTileVariants}
+    >
       <div className="relative flex h-[166px] items-center justify-center overflow-hidden rounded-[16px] bg-[#F4EEE5] px-1.5 pb-10 pt-4 shadow-[inset_0_0_0_1px_rgba(226,216,203,0.38)]">
         {item.imageSrc?.includes("奶油白裤子") ? (
           <span className="absolute inset-x-1 bottom-10 top-5 rounded-full bg-[#D8C8A8]/28 blur-[8px]" />
         ) : null}
+        {!loaded ? (
+          <motion.span
+            animate={{ opacity: [0.42, 0.76, 0.42], x: ["-18%", "18%", "-18%"] }}
+            aria-hidden="true"
+            className="absolute inset-3 rounded-[14px] bg-gradient-to-r from-[#EDE3D5]/60 via-[#FFF8EE]/90 to-[#E1D3C1]/60"
+            transition={{ duration: 1.05, ease: "easeInOut", repeat: Infinity }}
+          />
+        ) : null}
         {item.imageSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <motion.img
+            animate={{ opacity: loaded ? 1 : 0, scale: loaded ? 1 : 0.985 }}
             alt={item.label}
             className={`relative h-full w-full object-contain ${imageTone}`}
-            src={item.imageSrc}
+            decoding="async"
+            height={160}
+            initial={{ opacity: 0, scale: 0.985 }}
+            loading="eager"
+            onError={(event) => {
+              const image = event.currentTarget;
+              const originalSrc = image.dataset.originalSrc;
+              if (originalSrc && image.src !== originalSrc) image.src = originalSrc;
+            }}
+            onLoad={() => setLoaded(true)}
+            src={getModalImageSrc(item.imageSrc)}
+            data-original-src={item.imageSrc}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            width={120}
           />
         ) : (
           <span
@@ -124,6 +177,6 @@ function OutfitTile({
           {item.category}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }
