@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { motion, useReducedMotion, type Transition } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect } from "react";
 import type { AuraColorRecommendation } from "@/lib/aura/types";
 
@@ -13,30 +13,6 @@ export function ColorOutfitModal({
   onClose: () => void;
 }) {
   const visualItems = color.outfitMapping.items.slice(0, 4);
-  const shouldReduceMotion = useReducedMotion();
-  const cardTransition: Transition = shouldReduceMotion
-    ? { duration: 0.16, ease: "easeOut" }
-    : { duration: 0.32, ease: [0.22, 1, 0.36, 1] };
-  const cardMotion = shouldReduceMotion
-    ? {
-        animate: { opacity: 1 },
-        exit: { opacity: 0 },
-        initial: { opacity: 0 },
-      }
-    : {
-        animate: { opacity: 1, rotateY: 0, scale: 1, y: 0 },
-        exit: { opacity: 0, rotateY: 8, scale: 0.985, y: 10 },
-        initial: { opacity: 0, rotateY: -18, scale: 0.985, y: 10 },
-      };
-  const tileMotion = shouldReduceMotion
-    ? {
-        animate: { opacity: 1 },
-        initial: { opacity: 0 },
-      }
-    : {
-        animate: { opacity: 1, rotateY: 0, y: 0 },
-        initial: { opacity: 0, rotateY: -12, y: 8 },
-      };
 
   useEffect(() => {
     function closeOnEscape(event: KeyboardEvent) {
@@ -54,19 +30,18 @@ export function ColorOutfitModal({
       exit={{ opacity: 0 }}
       initial={{ opacity: 0 }}
       onClick={onClose}
-      style={{ perspective: 920, WebkitBackdropFilter: "blur(8px)" }}
+      style={{ WebkitBackdropFilter: "blur(8px)" }}
       transition={{ duration: 0.18, ease: "easeOut" }}
     >
       <motion.section
-        animate={cardMotion.animate}
+        animate={{ opacity: 1, y: 0 }}
         aria-modal="true"
         className="relative w-full max-w-[352px] rounded-[28px] border border-[#E2D8CB] bg-[#FFFCF7] px-6 pb-6 pt-7 shadow-[0_28px_80px_rgba(41,37,33,0.24)]"
-        exit={cardMotion.exit}
-        initial={cardMotion.initial}
+        exit={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 12 }}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
-        style={{ transformStyle: "preserve-3d", transformOrigin: "50% 54%" }}
-        transition={cardTransition}
+        transition={{ duration: 0.2, ease: "easeOut" }}
       >
         <div>
           <div className="flex items-center gap-3">
@@ -89,16 +64,8 @@ export function ColorOutfitModal({
 
         <div className="mt-6">
           <div className="grid grid-cols-4 gap-2">
-            {visualItems.map((item, index) => (
-              <motion.div
-                animate={tileMotion.animate}
-                initial={tileMotion.initial}
-                key={item.id}
-                style={{ transformStyle: "preserve-3d" }}
-                transition={{ duration: 0.24, delay: shouldReduceMotion ? 0 : 0.1 + index * 0.035, ease: "easeOut" }}
-              >
-                <OutfitTile colorHex={color.hex} item={item} />
-              </motion.div>
+            {visualItems.map((item) => (
+              <OutfitTile colorHex={color.hex} item={item} key={item.id} />
             ))}
           </div>
         </div>
