@@ -91,6 +91,8 @@ const profileEditOptions = {
   desiredAuras: ["干净", "稳定", "松弛", "有边界", "温柔", "清醒", "明亮", "低调", "被看见"],
   constraints: ["低维护", "需要走路", "不穿高跟", "需要保暖", "不能太休闲", "适合通勤", "适合拍照"],
 };
+const outfitSourcePath = "/reference/today-aura-outfits/";
+const modalOutfitSourcePath = "/reference/today-aura-outfits-modal/";
 
 export function AuraPrototype() {
   const reduceMotion = useReducedMotion();
@@ -635,6 +637,7 @@ function OverviewScreen({
         </div>
         {activeAdvice === "outfit" ? (
           <ResultAdviceCard
+            colorRecommendations={colorRecommendations}
             items={[
               ["整体轮廓", result.outfitAdvice.silhouette],
               ["上装", result.outfitAdvice.top],
@@ -643,10 +646,13 @@ function OverviewScreen({
               ["鞋包", result.outfitAdvice.shoesBag],
               ["替代方案", result.outfitAdvice.alternative],
             ]}
+            kind="outfit"
+            result={result}
             title="穿搭建议"
           />
         ) : (
           <ResultAdviceCard
+            colorRecommendations={colorRecommendations}
             items={[
               ["妆感", result.makeupAdvice.finish],
               ["唇色", result.makeupAdvice.lip],
@@ -655,6 +661,8 @@ function OverviewScreen({
               ["配饰", result.makeupAdvice.accessory],
               ["小物 / 香氛", result.makeupAdvice.item],
             ]}
+            kind="makeup"
+            result={result}
             title="妆容配饰"
           />
         )}
@@ -681,7 +689,21 @@ function OverviewScreen({
   );
 }
 
-function ResultAdviceCard({ title, items }: { title: string; items: [string, string][] }) {
+function ResultAdviceCard({
+  title,
+  items,
+  kind,
+  result,
+  colorRecommendations,
+}: {
+  title: string;
+  items: [string, string][];
+  kind: "outfit" | "makeup";
+  result: DailyAuraResult;
+  colorRecommendations: ReturnType<typeof getColorRecommendationsFromResult>;
+}) {
+  const visibleItems = items.filter(([label]) => ["整体轮廓", "上装", "下装", "鞋包"].includes(label));
+
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
@@ -692,18 +714,92 @@ function ResultAdviceCard({ title, items }: { title: string; items: [string, str
     >
       <div>
         <p className="text-xs font-semibold text-[#B99A63]">{title}</p>
-        <h2 className="mt-1 text-[22px] font-semibold text-[#292521]">今天可以这样出现</h2>
+        <h2 className="mt-1 text-[22px] font-semibold text-[#292521]">
+          {kind === "outfit" ? "先看这一身的感觉" : "今天可以这样出现"}
+        </h2>
       </div>
-      <div className="space-y-3 text-sm leading-6 text-[#5E564F]">
-        {items.map(([label, value]) => (
-          <p key={label}>
-            <span className="font-semibold text-[#292521]">{label}：</span>
-            {value}
-          </p>
-        ))}
-      </div>
+
+      {kind === "outfit" ? (
+        <>
+          <OutfitVisualBoard colorRecommendations={colorRecommendations} result={result} />
+          <div className="grid grid-cols-2 gap-2">
+            {visibleItems.map(([label, value]) => (
+              <div
+                className="min-h-[96px] rounded-[18px] border border-[#E2D8CB] bg-[#F8F3EA] p-3"
+                key={label}
+              >
+                <p className="text-xs font-semibold text-[#B99A63]">{label}</p>
+                <p className="mt-2 text-[13px] leading-5 text-[#5E564F]">{compactAdviceText(value)}</p>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="space-y-3 text-sm leading-6 text-[#5E564F]">
+          {items.map(([label, value]) => (
+            <p key={label}>
+              <span className="font-semibold text-[#292521]">{label}：</span>
+              {value}
+            </p>
+          ))}
+        </div>
+      )}
     </motion.div>
   );
+}
+
+function OutfitVisualBoard({
+  colorRecommendations,
+  result,
+}: {
+  colorRecommendations: ReturnType<typeof getColorRecommendationsFromResult>;
+  result: DailyAuraResult;
+}) {
+  const outfitItems = colorRecommendations[0]?.outfitMapping.items.slice(0, 4) ?? [];
+
+  return (
+    <div className="relative overflow-hidden rounded-[22px] border border-[#E2D8CB] bg-[#F8F3EA] p-3">
+      <div
+        aria-hidden="true"
+        className="absolute right-[-46px] top-[-42px] size-32 rounded-full blur-2xl"
+        style={{ backgroundColor: `${result.primaryColor.hex}38` }}
+      />
+      <div className="relative grid grid-cols-4 gap-2">
+        {outfitItems.map((item) => (
+          <div className="min-w-0 text-center" key={item.id}>
+            <div className="flex h-[104px] items-center justify-center rounded-[16px] bg-[#FFFCF7] px-1.5 py-3 shadow-[inset_0_0_0_1px_rgba(226,216,203,0.46)]">
+              {item.imageSrc ? (
+                <motion.img
+                  alt={item.label}
+                  className="h-full w-full object-contain drop-shadow-[0_8px_12px_rgba(60,54,48,0.10)]"
+                  decoding="async"
+                  src={getCompactOutfitImageSrc(item.imageSrc)}
+                />
+              ) : (
+                <span
+                  className="block size-10 rounded-full border border-[#E2D8CB]"
+                  style={{ backgroundColor: result.primaryColor.hex }}
+                />
+              )}
+            </div>
+            <p className="mt-2 text-[11px] font-semibold text-[#5E564F]">{item.category}</p>
+          </div>
+        ))}
+      </div>
+      <p className="relative mt-3 text-[13px] font-medium leading-5 text-[#5E564F]">
+        {result.primaryColor.name}做视觉中心，{result.secondaryColor.name}负责衔接，{result.accentColor.name}只做小面积收束。
+      </p>
+    </div>
+  );
+}
+
+function compactAdviceText(value: string) {
+  return value.split(/[，。；]/).find(Boolean)?.trim() ?? value;
+}
+
+function getCompactOutfitImageSrc(imageSrc: string) {
+  if (!imageSrc.startsWith(outfitSourcePath)) return imageSrc;
+  return imageSrc.replace(outfitSourcePath, modalOutfitSourcePath);
 }
 
 function DetailScreen({

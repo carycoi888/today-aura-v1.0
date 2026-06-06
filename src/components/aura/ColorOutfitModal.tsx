@@ -126,7 +126,7 @@ function OutfitTile({
 }) {
   const [loaded, setLoaded] = useState(!item.imageSrc);
   const imageTone = item.imageSrc?.includes("奶油白裤子")
-    ? "contrast-150 brightness-95 saturate-125 drop-shadow-[0_10px_14px_rgba(60,54,48,0.22)]"
+    ? "brightness-105 saturate-75 drop-shadow-[0_10px_14px_rgba(60,54,48,0.14)]"
     : "drop-shadow-[0_10px_14px_rgba(60,54,48,0.12)]";
 
   return (
